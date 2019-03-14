@@ -4,7 +4,8 @@
 # and filling up our tenant with undeletable resources.
 
 # TODO(trown): make these arguments with basic validation
-export OS_CLOUD=<PUT YOUR CLOUD HERE>
+source "${CONFIG}"
+
 expoft CLUSTER_NAME=<THIS IS THE PREFIX USED ON ALL RESOURCES ie the * in *-master-0>
 
 openstack server list -c ID -f value --name $CLUSTER_NAME | xargs openstack server delete

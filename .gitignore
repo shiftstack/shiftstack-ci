@@ -1,0 +1,3 @@
+# ignore other user's cluster configs
+*_cluster_config.sh
+
