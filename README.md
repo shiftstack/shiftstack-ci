@@ -2,10 +2,16 @@
 Now that we are starting to move away from tripleo as a way to test ocp, this repo is a tool to help you build and simplify your testing environment.
 
 ## Set up
-Before running any of the scripts in this repo, there is minimal setup required. First, make sure your go environemnt is functional, and if you don't have a go environment set up, then set one up. [This guide has gifs of cats, and is highly recommended if you are struggling with this.](https://medium.com/@fsufitch/go-environment-setup-minus-the-insanity-b872f34351c8) Next, make sure that you have a local copy of the clouds.yaml from your cloud provider. Lastly, you will need to clone the openshift installer, which can be found [here](http://github.com/openshift/installer). Rather than clone using git, it is much more convenient to use go get, since it will put it where it belongs for you.
+Before running any of the scripts in this repo, there is minimal setup required. First, make sure your go environemnt is functional, and if you don't have a go environment set up, then set one up. [This guide has gifs of cats, and is highly recommended if you are struggling with this.](https://medium.com/@fsufitch/go-environment-setup-minus-the-insanity-b872f34351c8) Next, make sure that you have a local copy of the clouds.yaml from your cloud provider. You will need to clone the openshift installer, which can be found [here](http://github.com/openshift/installer). Rather than clone using git, it is much more convenient to use go get, since it will put it where it belongs for you.
 
 ```bash
 go get github.com/openshift/installer
+```
+
+Lastly, you need jq. This is easy, just run:
+
+```bash
+sudo dnf install jq
 ```
 
 ## Cluster Configuration

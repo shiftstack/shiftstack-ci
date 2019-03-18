@@ -4,12 +4,15 @@
 # and filling up our tenant with undeletable resources.
 
 # TODO(trown): make these arguments with basic validation
-source "${CONFIG}"
-
-expoft CLUSTER_NAME=<THIS IS THE PREFIX USED ON ALL RESOURCES ie the * in *-master-0>
-
+if [ -f "${CONFIG}" ];then
+    source "${CONFIG}"
+else
+    echo "Please export CONFIG. See readme for help."
+    exit 1
+fi
+CLUSTER_PREFIX=$CLUSTER_NAME
+CLUSTER_NAME=$(jq .infraID $CLUSTER_PREFIX/metadata.json | sed "s/\"//g")
 openstack server list -c ID -f value --name $CLUSTER_NAME | xargs openstack server delete
-
 openstack router remove subnet  $CLUSTER_NAME-external-router $CLUSTER_NAME-service
 openstack router remove subnet  $CLUSTER_NAME-external-router $CLUSTER_NAME-nodes
 # delete interfaces from the router
