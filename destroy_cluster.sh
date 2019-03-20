@@ -10,8 +10,12 @@ else
     echo "Please export CONFIG. See readme for help."
     exit 1
 fi
-CLUSTER_PREFIX=$CLUSTER_NAME
-CLUSTER_NAME=$(jq .infraID $CLUSTER_PREFIX/metadata.json | sed "s/\"//g")
+
+if [ -f $CLUSTER_NAME/metadata.json ]; then
+    # elements created by the cluster are named $CLUSTER_NAME-hash by the installer
+    CLUSTER_NAME=$(jq .infraID $CLUSTER_PREFIX/metadata.json | sed "s/\"//g")
+fi
+
 openstack server list -c ID -f value --name $CLUSTER_NAME | xargs openstack server delete
 openstack router remove subnet  $CLUSTER_NAME-external-router $CLUSTER_NAME-service
 openstack router remove subnet  $CLUSTER_NAME-external-router $CLUSTER_NAME-nodes
