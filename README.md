@@ -28,11 +28,8 @@ sudo dnf install jq
 
 ## Cluster Configuration
 
-Before the first time you run this, and every time you make a change to the
-openshift installer, you need to build the installer. For this, we have
-a convenience script called build_ocp.sh.
 
-Next, make a copy of the cluster_config.sh.example file:
+Make a copy of the `cluster_config.sh.example` file:
 
 ```shell
 cp cluster_config.sh.example cluster_config.sh
