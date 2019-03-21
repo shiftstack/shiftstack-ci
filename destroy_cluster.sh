@@ -3,13 +3,14 @@
 # protection from a patch under review breaking cluster delete
 # and filling up our tenant with undeletable resources.
 
-# TODO(trown): make these arguments with basic validation
-if [ -f "${CONFIG}" ];then
-    source "${CONFIG}"
-else
-    echo "Please export CONFIG. See readme for help."
+CONFIG=${CONFIG:-cluster_config.sh}
+if [ ! -r "$CONFIG" ]; then
+    echo "Could not find cluster configuration file."
+    echo "Make sure $CONFIG file exists in the shiftstack-ci directory and that it is readable"
     exit 1
 fi
+source ${CONFIG}
+
 CLUSTER_PREFIX=$CLUSTER_NAME
 CLUSTER_NAME=$(jq .infraID $CLUSTER_PREFIX/metadata.json | sed "s/\"//g")
 openstack server list -c ID -f value --name $CLUSTER_NAME | xargs openstack server delete

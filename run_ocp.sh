@@ -2,7 +2,14 @@
 set -x
 set -e
 
-source "${CONFIG}"
+CONFIG=${CONFIG:-cluster_config.sh}
+if [ ! -r "$CONFIG" ]; then
+    echo "Could not find cluster configuration file."
+    echo "Make sure $CONFIG file exists in the shiftstack-ci directory and that it is readable"
+    exit 1
+fi
+source ${CONFIG}
+
 # check whether we already have a floating ip created
 FLOATING_IP=$(openstack floating ip list --format value | awk -F ' ' 'NR==1 {print $2}')
 

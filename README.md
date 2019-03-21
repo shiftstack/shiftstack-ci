@@ -32,13 +32,15 @@ Before the first time you run this, and every time you make a change to the
 openshift installer, you need to build the installer. For this, we have
 a convenience script called build_ocp.sh.
 
-Next, make a copy of the cluster_config.sh, and make whatever changes are
-necessary. *When you make a copy of it, please name it something like
-nickname_cluster_config.sh, so that the gitignore knows to ignore it.* Once
-this has been set up, you are free to use the run_ocp.sh and destroy_cluster.sh
-scripts. This will set up how and where your cluster gets built, so it is
-important to fill it out carefully. Here is a rundown of the important fields
-you will likely have to modify:
+Next, make a copy of the cluster_config.sh.example file:
+
+```shell
+cp cluster_config.sh.example cluster_config.sh
+```
+
+Adjust the settings to match your environment. This will set up how and
+where your cluster gets built, so it is important to fill it out carefully.
+Here is a rundown of the important fields you will likely have to modify:
 
 ```
 OS_CLOUD           The cloud in your openstack cluster that resources will be consumed from.
@@ -46,11 +48,8 @@ CLUSTER_NAME       What your ocp cluster will be nicknamed. This naming scheme i
 OPENSTACK_REGION   The cluster region that resources will be consumed from. For the moc, use moc-kzn
 ```
 
-When you are done with this, export it like this:
-
-```
-export CONFIG=your_cluster_config.sh
-```
+Once this has been set up, you are free to use the `run_ocp.sh` and
+`destroy_cluster.sh` scripts.
 
 ## Building the Installer
 
