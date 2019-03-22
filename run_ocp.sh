@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 set -x
 set -e
 
@@ -8,14 +9,15 @@ if [ ! -r "$CONFIG" ]; then
     echo "Make sure $CONFIG file exists in the shiftstack-ci directory and that it is readable"
     exit 1
 fi
-source ${CONFIG}
 
-# check whether we already have a floating ip created
-FLOATING_IP=$(openstack floating ip list --format value | awk -F ' ' 'NR==1 {print $2}')
+source "${CONFIG}"
+
+# check whether we have a free floating IP
+FLOATING_IP=$(openstack floating ip list --status DOWN --format value | awk -F ' ' 'NR==1 {print $2}')
 
 # create new floating ip if doesn't exist
 if [ -z "$FLOATING_IP" ]; then
-    FLOATING_IP=$(openstack floating ip create $OPENSTACK_EXTERNAL_NETWORK --format value | awk 'NR==6')
+    FLOATING_IP=$(openstack floating ip create $OPENSTACK_EXTERNAL_NETWORK --format value --column floating_ip_address)
 fi
 
 # add data to /etc/hosts
