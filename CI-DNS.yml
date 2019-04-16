@@ -1,0 +1,144 @@
+passwd:
+  users:
+    - name: core
+      ssh_authorized_keys:
+        - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC1JnaVPFjGDuhzVUTNSug8TPqyCO14rsxSJ6fJiWJTj9LkqSoJ7SJy0NiLPWXygsnM6cvibpPZrDrmwqGHwTLlhnurbEUA8EvsddxOPkOzX+diMd6xthFMcdTYXS+sQQ9cPB6otrZai7GsAiT7OEQutF7g1JXIpzt1jBd8P+S3p5B5Av+AuDkSHwwvC8Y0IREQLBzitCQP9I9Mrw5KVS5uwVHajYri0s8ZvsXXJtxBUaWjRxFpyjvkL0NDPanfwdxQP3X0z2crY/RMr72dwjk0P74QQmfoD9juD3J8/9BkdWKLuhQTvTShduqhAJK9XXj2/pQj/IuM1ZSALVIW/Dgr
+storage:
+  files:
+    - path: /etc/coredns/dynamic-update.py
+      filesystem: root
+      mode: 0644
+      contents:
+        inline: |
+          import SimpleHTTPServer
+          import SocketServer
+          import json
+     
+          # Edit these to suit your needs:
+          PORT = 8080
+          DOMAIN = "shiftstack.ci"
+          COREDB_FILE = "/etc/coredns/db.{}".format(DOMAIN)
+     
+     
+          # You should probably not touch these unless you want to hardcode some records
+          COREDB_TEMPLATE = """
+          $ORIGIN {domain}.
+          @    3600 IN SOA {domain}. hostmaster (
+                                          {serial} ; serial
+                                          7200       ; refresh (2 hours)
+                                          3600       ; retry (1 hour)
+                                          1209600    ; expire (2 weeks)
+                                          3600       ; minimum (1 hour)
+                                          )
+     
+          {entries}
+          """
+          ENTRIES = {}
+          SERIAL_NUMBER = 0
+     
+     
+          def build_coredb_file(domain, serial_number, entries):
+              formatted_entries = '\n'.join("{} IN A {}".format(name, ip) for name, ip
+                  in entries.iteritems())
+              return COREDB_TEMPLATE.format(domain=domain, serial=serial_number,
+                  entries=formatted_entries)
+     
+     
+          class ServerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
+              def do_POST(self):
+                  global ENTRIES
+                  global SERIAL_NUMBER
+                  global DOMAIN
+                  content_len = int(self.headers.getheader('content-length', 0))
+                  post_body = self.rfile.read(content_len)
+                  body = ""
+                  try:
+                      body = json.loads(post_body)
+                  except Exception:
+                      self.send_response(422)
+                      print "Error, invalid JSON: {}".format(post_body)
+                      return
+                  self.send_response(200)
+                  if 'name' in body and 'ip' in body:
+                      ENTRIES[body['name']] = body['ip']
+                      SERIAL_NUMBER += 1
+                      db = build_coredb_file(DOMAIN, SERIAL_NUMBER, ENTRIES)
+                      print "Writing version {} to file {}".format(SERIAL_NUMBER, COREDB_FILE)
+                      with open(COREDB_FILE, 'w') as f:
+                          f.write(db)
+                  else:
+                      print "Invalid format of body", repr(body)
+     
+     
+          if __name__ == '__main__':
+              Handler = ServerHandler
+              httpd = SocketServer.TCPServer(("", PORT), Handler)
+              print "serving at port", PORT
+              httpd.serve_forever()
+
+    - path: /etc/coredns/Corefile
+      filesystem: root
+      mode: 0644
+      contents:
+        inline: |
+          . {
+              log
+              errors
+
+              forward . /etc/resolv.conf {
+                  except shiftstack.ci
+              }
+          }
+
+          shiftstack.ci {
+              log
+              errors
+
+              file /etc/coredns/db.shiftstack.ci {
+                  reload 10s
+              }
+          }
+
+    - path: /etc/coredns/db.shiftstack.ci
+      filesystem: root
+      mode: 0644
+      contents:
+        inline: |
+          $ORIGIN shiftstack.ci.
+          @    3600 IN SOA dns.shiftstack.ci. hostmaster (
+                                          2017042752 ; serial
+                                          7200       ; refresh (2 hours)
+                                          3600       ; retry (1 hour)
+                                          1209600    ; expire (2 weeks)
+                                          3600       ; minimum (1 hour)
+                                          )
+
+
+systemd:
+  units:
+    - name: ci-dns.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=CI DNS
+
+        [Service]
+        ExecStart=/bin/podman run --rm -i -t -m 128m --net host --cap-add=NET_ADMIN -v /etc/coredns:/etc/coredns:Z openshift/origin-coredns:v4.0 -conf /etc/coredns/Corefile
+        Restart=always
+        RestartSec=10
+
+        [Install]
+        WantedBy=multi-user.target
+    - name: dynamic-dns-updater.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Dynamic DNS updater
+
+        [Service]
+        ExecStart=/bin/python /etc/coredns/dynamic-update.py
+        Restart=always
+        RestartSec=10
+
+        [Install]
+        WantedBy=multi-user.target
