@@ -35,11 +35,16 @@ if [ ! -f $CLUSTER_NAME/install-config.yaml ]; then
 apiVersion: v1beta3
 baseDomain: ${BASE_DOMAIN}
 clusterID:  ${CLUSTER_ID}
-machines:
-- name:     master
-  replicas: 2
-- name:     worker
-  replicas: 1
+compute:
+- hyperthreading: Enabled
+  name: worker
+  platform: {}
+  replicas: ${WORKER_COUNT}
+controlPlane:
+  hyperthreading: Enabled
+  name: master
+  platform: {}
+  replicas: ${MASTER_COUNT}
 metadata:
   name: ${CLUSTER_NAME}
 networking:

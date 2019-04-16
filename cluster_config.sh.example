@@ -2,7 +2,8 @@ eval "$(go env)"
 
 export OS_CLOUD=""
 export CLUSTER_NAME=""
-
+export MASTER_COUNT=2
+export WORKER_COUNT=1
 export OPENSHIFT_INSTALL_DATA="$GOPATH/src/github.com/openshift/installer/data/data"
 export OPENSTACK_REGION=moc-kzn
 export OPENSTACK_IMAGE=rhcos
