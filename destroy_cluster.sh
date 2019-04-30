@@ -9,16 +9,20 @@ if [ ! -r "$CONFIG" ]; then
     echo "Make sure $CONFIG file exists in the shiftstack-ci directory and that it is readable"
     exit 1
 fi
-source ${CONFIG}
+source ./${CONFIG}
 
-CLUSTER_PREFIX=$CLUSTER_NAME
-CLUSTER_NAME=$(jq .infraID $CLUSTER_PREFIX/metadata.json | sed "s/\"//g")
-openstack server list -c ID -f value --name $CLUSTER_NAME | xargs openstack server delete
+
+if [ -f $CLUSTER_NAME/metadata.json ]; then
+    # elements created by the cluster are named $CLUSTER_NAME-hash by the installer
+    CLUSTER_NAME=$(jq .infraID $CLUSTER_NAME/metadata.json | sed "s/\"//g")
+fi
+
+openstack server list -c ID -f value --name $CLUSTER_NAME | xargs --no-run-if-empty openstack server delete
 openstack router remove subnet  $CLUSTER_NAME-external-router $CLUSTER_NAME-service
 openstack router remove subnet  $CLUSTER_NAME-external-router $CLUSTER_NAME-nodes
 # delete interfaces from the router
-openstack network trunk list -c Name -f value | grep $CLUSTER_NAME | xargs openstack network trunk delete
-openstack port list --network $CLUSTER_NAME-openshift -c ID -f value | xargs openstack port delete
+openstack network trunk list -c Name -f value | grep $CLUSTER_NAME | xargs --no-run-if-empty openstack network trunk delete
+openstack port list --network $CLUSTER_NAME-openshift -c ID -f value | xargs --no-run-if-empty openstack port delete
 
 # delete interfaces from the router
 PORT=$(openstack router show $CLUSTER_NAME-external-router -c interfaces_info -f value | cut -d '"' -f 12)
@@ -42,5 +46,8 @@ for c in $(openstack container list -f value); do
         CONTAINER=$c
     fi
 done
-openstack object list -f value $CONTAINER | xargs openstack object delete $CONTAINER
-openstack container delete $CONTAINER
+
+if [ ! -z "$CONTAINER" ]; then
+    openstack object list -f value $CONTAINER | xargs --no-run-if-empty openstack object delete $CONTAINER
+    openstack container delete $CONTAINER
+fi
