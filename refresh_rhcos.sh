@@ -32,12 +32,6 @@ if ! sha256sum $LOCAL_IMAGE_FILE | grep -q $IMAGE_SHA; then
     exit 1
 fi
 
-# MOC doesn't provide disks larger than 10GB, this makes sure the image fits
-# the disk
-# Needs qemu-img version 2 or above
-echo "Resizing image to fit a 10GB disk"
-qemu-img resize ${LOCAL_IMAGE_FILE} --shrink 10G
-
 echo "Uploading image to ${OS_CLOUD} as rhcos-new"
 openstack image create rhcos-new --container-format bare --disk-format qcow2 --file ${LOCAL_IMAGE_FILE} --private --property version=$IMAGE_VERSION
 
