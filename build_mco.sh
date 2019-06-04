@@ -3,15 +3,22 @@ help() {
     echo ""
     echo "Usage: ./build_mco.sh [options] <quay.io username>"
     echo "Options:"
-    echo "-h        show this message"
+    echo "-h, --help      show this message"
+    echo "-t, --tag       push to a custom tag in your origin release image repo, default: mco"
     echo ""
 }
+
+TAG="mco"
 
 # Parse Options
 case $1 in
     -h|--help)
         help
         exit 0;;
+    -t|--tag)
+        TAG=$2
+        shift
+        shift;;
     *);;
 esac
 
@@ -22,7 +29,7 @@ fi
 
 USERNAME="$1"
 
-export DEST_IMAGE="quay.io/$USERNAME/origin-release:mco"
+export DEST_IMAGE="quay.io/$USERNAME/origin-release:$TAG"
 export FROM_IMAGE="registry.svc.ci.openshift.org/origin/release:4.2"
 
 pushd $GOPATH/src/github.com/openshift/machine-config-operator
