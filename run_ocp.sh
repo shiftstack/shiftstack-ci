@@ -13,7 +13,7 @@ source ${CONFIG}
 set -x
 
 # check whether we have a free floating IP
-FLOATING_IP=$(openstack floating ip list --status DOWN --network $OPENSTACK_EXTERNAL_NETWORK --format value | awk -F ' ' 'NR==1 {print $2}')
+FLOATING_IP=$(openstack floating ip list --status DOWN --network $OPENSTACK_EXTERNAL_NETWORK --long --format value -c "Floating IP Address" -c Description | awk 'NF<=1, NR==1 {print}')
 
 # create new floating ip if doesn't exist
 if [ -z "$FLOATING_IP" ]; then
