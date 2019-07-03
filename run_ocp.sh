@@ -57,6 +57,8 @@ if [ ! -d $CLUSTER_NAME ]; then
     mkdir -p $CLUSTER_NAME
 fi
 
+: "${OPENSTACK_WORKER_FLAVOR:=${OPENSTACK_FLAVOR}}"
+
 if [ ! -f $CLUSTER_NAME/install-config.yaml ]; then
     export CLUSTER_ID=$(uuidgen --random)
     cat > $CLUSTER_NAME/install-config.yaml << EOF
@@ -66,7 +68,9 @@ clusterID:  ${CLUSTER_ID}
 compute:
 - hyperthreading: Enabled
   name: worker
-  platform: {}
+  platform:
+    openstack:
+      type: ${OPENSTACK_WORKER_FLAVOR}
   replicas: ${WORKER_COUNT}
 controlPlane:
   hyperthreading: Enabled
