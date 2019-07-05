@@ -33,24 +33,15 @@ export DEST_IMAGE="quay.io/$USERNAME/origin-release:$TAG"
 export FROM_IMAGE="registry.svc.ci.openshift.org/origin/release:4.2"
 
 pushd $GOPATH/src/github.com/openshift/machine-config-operator
-for image in controller daemon operator server; do
-    export WHAT=machine-config-$image
-    ./hack/build-image.sh
-done
-
-for image in controller daemon operator server; do
-    export WHAT=machine-config-$image
-    export REPO="quay.io/$USERNAME"
-    ./hack/push-image.sh
-done
+export WHAT=machine-config-operator
+export REPO="quay.io/$USERNAME"
+./hack/build-image.sh
+./hack/push-image.sh
 
 oc adm release new \
     --from-release="$FROM_IMAGE" \
     --to-image="$DEST_IMAGE" \
     --server https://api.ci.openshift.org \
     -n openshift \
-    machine-config-operator=quay.io/$USERNAME/origin-machine-config-operator:latest \
-    machine-config-controller=quay.io/$USERNAME/origin-machine-config-controller:latest \
-    machine-config-daemon=quay.io/$USERNAME/origin-machine-config-daemon:latest \
-    machine-config-server=quay.io/$USERNAME/origin-machine-config-server:latest
+    machine-config-operator=quay.io/$USERNAME/origin-machine-config-operator:latest
 popd
