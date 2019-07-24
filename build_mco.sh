@@ -29,19 +29,18 @@ fi
 
 USERNAME="$1"
 
-export DEST_IMAGE="quay.io/$USERNAME/origin-release:$TAG"
-export FROM_IMAGE="registry.svc.ci.openshift.org/origin/release:4.2"
+DEST_IMAGE="quay.io/$USERNAME/origin-release:$TAG"
+FROM_IMAGE="registry.svc.ci.openshift.org/origin/release:4.2"
+MCO_IMAGE=quay.io/$USERNAME/machine-config-operator:$TAG
 
 pushd $GOPATH/src/github.com/openshift/machine-config-operator
-export WHAT=machine-config-operator
-export REPO="quay.io/$USERNAME"
-./hack/build-image.sh
-./hack/push-image.sh
+podman build --no-cache -t $MCO_IMAGE .
+podman push $MCO_IMAGE
 
 oc adm release new \
     --from-release="$FROM_IMAGE" \
     --to-image="$DEST_IMAGE" \
     --server https://api.ci.openshift.org \
     -n openshift \
-    machine-config-operator=quay.io/$USERNAME/origin-machine-config-operator:latest
+    machine-config-operator=$MCO_IMAGE
 popd
