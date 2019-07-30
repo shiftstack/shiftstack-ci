@@ -35,7 +35,7 @@ export FROM_IMAGE="registry.svc.ci.openshift.org/origin/release:4.2"
 pushd $GOPATH/src/github.com/openshift/machine-config-operator
 export WHAT=machine-config-operator
 export REPO="quay.io/$USERNAME"
-./hack/build-image.sh
+./hack/build-image
 ./hack/push-image.sh
 
 oc adm release new \
