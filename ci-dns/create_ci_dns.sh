@@ -1,4 +1,5 @@
 #!/bin/bash
+# TODO ci-dns VM must have the 128.31.27.48 FIP pointing to it
 # TODO(trown): remove hardcoding of net-id
 # TODO(mandre): need a ci-dns network
 # openstack network show ci-dns
@@ -70,6 +71,7 @@
 # direction='ingress', ethertype='IPv4', port_range_max='8080', port_range_min='8080', protocol='tcp', remote_ip_prefix='0.0.0.0/0'
 # direction='egress', ethertype='IPv6'
 
+# Transform yml to ign file using https://github.com/coreos/container-linux-config-transpiler
 
 openstack server create \
 	--user-data ./CI-DNS.ign \
