@@ -2,7 +2,12 @@ passwd:
   users:
     - name: core
       ssh_authorized_keys:
-        - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC1JnaVPFjGDuhzVUTNSug8TPqyCO14rsxSJ6fJiWJTj9LkqSoJ7SJy0NiLPWXygsnM6cvibpPZrDrmwqGHwTLlhnurbEUA8EvsddxOPkOzX+diMd6xthFMcdTYXS+sQQ9cPB6otrZai7GsAiT7OEQutF7g1JXIpzt1jBd8P+S3p5B5Av+AuDkSHwwvC8Y0IREQLBzitCQP9I9Mrw5KVS5uwVHajYri0s8ZvsXXJtxBUaWjRxFpyjvkL0NDPanfwdxQP3X0z2crY/RMr72dwjk0P74QQmfoD9juD3J8/9BkdWKLuhQTvTShduqhAJK9XXj2/pQj/IuM1ZSALVIW/Dgr
+        - ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA1qB1X9H9wDTT5J88nfeXtHBPAaRyIqe2rnF7bgqc4wpXpdSoxOX18K/45tT9sYOHU/63DfmQdpqUPso3Ql3uBzzW78np4Qa6HlGTynpOSqn7J3UwFdMD0/5EocqsEYfdQsjHCYT2arGvBWT2b4huxq9ke2WqXKUVEbZHpgSrR9dGQrM8xL1vmF5wcVTS6f5W0vq/x7YlJiIKtWUplV302DVFeLAXiDA+f6cVcd4q3NI07Py00sOU3YI3jYpPWxTMTj2R5k1bn+CbXqi5RfV/L+JLXq4XCAT7b/mHkSsXZC7Kn6s92oY930U5dSaYSZWVz54Q9wwOZYmdAoOKsGwwiQ== m.andre@redhat.com
+        - ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA1HTJjdVoE1+O5Qieh4KvT3wHUP85lZzYTfaeE0tBdeHvSKZDonQQfYoMzkdwKEfV8Bgivd8nAYDZnFKqTF2rLvQkB4XuuZYdzwJEiXmW3GQpu3xTFDA9KdLfbuYqW/IlbjaGT5TiFSmDDErzhwlz2T5xKd2PsHM+URpctSgYlcIZPeW7Gj02dyyqF6TPJ93/VQEtBhLCwSh4cZOA+bkV0ghgcD6tyqyiM3MSrldEdy7098xXrOW0Lz1luHK+p5/vVsS2Uowd7yVAcFuHaG4/YTDpg/zIWdH/WJ85k4Pq2BmEwKr5G+Zmnqo4h17gfwaxPJtL9UorLSuaA/l5RPt7cQ== tsedovic@redhat.com
+        - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDsboPPbyMRqyh1mchlrX8t3jHp6MWaOm6DEA55PJ8YwSHbzgabU8x/X6fXYIppne0570cvtQW4NZyURWjb6y5AANwRtNOVz5lsxC0tgPLOMKzyopG/fZc8tsqH0rMzwPghEIH4a7XK16MDCyOdK5va3S3VVupCo5SYjimxYBC1EinXG3brhYe7500S0E/U8hn+26W2f2o8bS2Z3KoUweAsyENVXH5Y/m+ia5g2JbUa132AVEtWnhhQpbZkskpbr2MqsjpBIchOp5mOfqElEGzeRjjn2Kd8yZov11cKKeYwGoKSPQHvjK6E1t+LYRA1UxTmyNy4M4gPfIBncDm3pHIz egarcia@emilio
+        - ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA+yNMzUrQXa0EOfv+WJtfmLO1WdoOaD47G9qwllSUc4GPRkYzkTNdxcEPrR3XBR94ctOeWOHZ/w7ymhvwK5LLsoNBK+WgRz/mg8oHcii2GoL0fNojdwUMyFMIJxJT+iwjF/omyhyrW/aLAztAKRO7BdOkNlXMAAcMxKzQtFqdZm09ghoImu3BPYUTyDKHMp+t0P1d7mkHdd719oDfMf+5miHxQeJZJCWAsGwroN7k8a46rvezDHEygBsDAF2ZpS2iGMABos/vTp1oyHkCgCqc3rM0OoKqcKB5iQ9Qaqi5ung08BXP/PHfVynXzdGMjTh4w+6jiMw7Dx2GrQIJsDolKQ== dprince@redhat.com
+        - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCpE2mGXMLZLBpWYMhO1Kz85FryqgD9zGStgTrY1x1Fspyjk4la9v2AYWsTCLISlNne3CdhaRmKjhYo7xdW9px8JCbPwtXqbCjOEuKsuHCtlbn+6ubZsJaYkImYAq3EEsi0cXMUCutrMPzMZaMCiaTIUhOXj+f1GY6zqVZlK2thJO9tzj5vAx1leWlwdn6CBM7ikXCQ6PVvqofki2pdV7V/HF3dmNCg1196/o8yH5x+ItithPJCvXytlIzi+5jy7YqGnei5jDUzqf0ZMS2OnJ7IkTz3vx322g3SUET/lYoFO5bjYbhAsLc83WM4Yvaw9FCEZCzKxMBQXK91oGH5siHT mfedosin@redhat.com
+        - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCmpF9kTKwqr1MXZbDRN/QyfbtHpekunhYYqJHWqiQPYlXpLg9gHyyk/TZiUxDt/6X9udE6goYSgSIpSw5xBnYGSDis+i1NVVv4ZlmLt8x3CwCoyB7Qk5zCmxCoOhPiSiVcgDGK10rhPfciVV++k2uN6d87IljvlNj192ruUF7nZw2UDhH5TG9Ox3A46NCOwlGec2oydtC+p7YGpltBAlg/mgDyuS0PwT+QYwUedHhx/fGQbgQj9BlOGL9UdxCyGRqyadmbmdT/8H30zW1mwQZnGHIREtqrIZLIXJhCN6rdSy7uDY7/ccdRjmxNvVnMwMzxb8qGgMsBXaBqIFGsQB7dcKvO2QrfGFcnbZmJ2XC8zgMnABxywBLQDBY3+2cjthafUNRKpyVE1xDrm1d1tfWRm8I77D2y3s4Mtgh2qkJQ6gLCYmo4GpajZ2w+9y45a7Keup9XmiHcdI0UoPETsXMYqlR2TX3TiMth4fjjoxpJJft4hIckvUEc8MrQfDHFN2GIj/m+rT1WkjKqZuu0W2R36pmO+7aT72eAEAc1JdqCNURQsy5byybtbqw5EfugX59f9Kj95955yfBpCofh3praWOjcX0l+gEUBfVBneqFukoqnkYiEddkRJT59Z7yxe+ZjzgxeTj9O2vtggABWXPDw79vg1OFea1byuxjRZfCS5Q== pprinett@redhat.com
 storage:
   files:
     - path: /etc/coredns/dynamic-update.py
@@ -10,8 +15,8 @@ storage:
       mode: 0644
       contents:
         inline: |
-          import SimpleHTTPServer
-          import SocketServer
+          import http.server
+          import socketserver
           import json
      
           # Edit these to suit your needs:
@@ -39,41 +44,41 @@ storage:
      
           def build_coredb_file(domain, serial_number, entries):
               formatted_entries = '\n'.join("{} IN A {}".format(name, ip) for name, ip
-                  in entries.iteritems())
+                  in entries.items())
               return COREDB_TEMPLATE.format(domain=domain, serial=serial_number,
                   entries=formatted_entries)
      
      
-          class ServerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
+          class ServerHandler(http.server.SimpleHTTPRequestHandler):
               def do_POST(self):
                   global ENTRIES
                   global SERIAL_NUMBER
                   global DOMAIN
-                  content_len = int(self.headers.getheader('content-length', 0))
+                  content_len = int(self.headers.get('content-length', 0))
                   post_body = self.rfile.read(content_len)
                   body = ""
                   try:
                       body = json.loads(post_body)
                   except Exception:
                       self.send_response(422)
-                      print "Error, invalid JSON: {}".format(post_body)
+                      print("Error, invalid JSON: {}".format(post_body))
                       return
                   self.send_response(200)
                   if 'name' in body and 'ip' in body:
                       ENTRIES[body['name']] = body['ip']
                       SERIAL_NUMBER += 1
                       db = build_coredb_file(DOMAIN, SERIAL_NUMBER, ENTRIES)
-                      print "Writing version {} to file {}".format(SERIAL_NUMBER, COREDB_FILE)
+                      print("Writing version {} to file {}".format(SERIAL_NUMBER, COREDB_FILE))
                       with open(COREDB_FILE, 'w') as f:
                           f.write(db)
                   else:
-                      print "Invalid format of body", repr(body)
+                      print("Invalid format of body", repr(body))
      
      
           if __name__ == '__main__':
               Handler = ServerHandler
-              httpd = SocketServer.TCPServer(("", PORT), Handler)
-              print "serving at port", PORT
+              httpd = socketserver.TCPServer(("", PORT), Handler)
+              print("serving at port", PORT)
               httpd.serve_forever()
 
     - path: /etc/coredns/Corefile
@@ -136,7 +141,7 @@ systemd:
         Description=Dynamic DNS updater
 
         [Service]
-        ExecStart=/bin/python /etc/coredns/dynamic-update.py
+        ExecStart=/usr/libexec/platform-python /etc/coredns/dynamic-update.py
         Restart=always
         RestartSec=10
 
