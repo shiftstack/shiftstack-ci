@@ -64,7 +64,7 @@ storage:
                       print("Error, invalid JSON: {}".format(post_body))
                       return
                   self.send_response(200)
-                  if 'name' in body and 'ip' in body:
+                  if 'name' in body and body['name'] and 'ip' in body and body['ip']:
                       ENTRIES[body['name']] = body['ip']
                       SERIAL_NUMBER += 1
                       db = build_coredb_file(DOMAIN, SERIAL_NUMBER, ENTRIES)
