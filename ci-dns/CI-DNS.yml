@@ -64,8 +64,8 @@ storage:
                       print("Error, invalid JSON: {}".format(post_body))
                       return
                   self.send_response(200)
-                  if 'name' in body and body['name'] and 'ip' in body and body['ip']:
-                      if 'action' in body and body['action'] == "remove":
+                  if body.get('name') and body.get('ip'):
+                      if body.get('action') == "remove":
                           if body['name'] in ENTRIES:
                               del ENTRIES[body['name']]
                       else:
