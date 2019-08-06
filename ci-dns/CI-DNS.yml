@@ -64,8 +64,12 @@ storage:
                       print("Error, invalid JSON: {}".format(post_body))
                       return
                   self.send_response(200)
-                  if 'name' in body and 'ip' in body:
-                      ENTRIES[body['name']] = body['ip']
+                  if body.get('name') and body.get('ip'):
+                      if body.get('action') == "remove":
+                          if body['name'] in ENTRIES:
+                              del ENTRIES[body['name']]
+                      else:
+                          ENTRIES[body['name']] = body['ip']
                       SERIAL_NUMBER += 1
                       db = build_coredb_file(DOMAIN, SERIAL_NUMBER, ENTRIES)
                       print("Writing version {} to file {}".format(SERIAL_NUMBER, COREDB_FILE))
