@@ -65,7 +65,11 @@ storage:
                       return
                   self.send_response(200)
                   if 'name' in body and body['name'] and 'ip' in body and body['ip']:
-                      ENTRIES[body['name']] = body['ip']
+                      if 'action' in body and body['action'] == "remove":
+                          if body['name'] in ENTRIES:
+                              del ENTRIES[body['name']]
+                      else:
+                          ENTRIES[body['name']] = body['ip']
                       SERIAL_NUMBER += 1
                       db = build_coredb_file(DOMAIN, SERIAL_NUMBER, ENTRIES)
                       print("Writing version {} to file {}".format(SERIAL_NUMBER, COREDB_FILE))
