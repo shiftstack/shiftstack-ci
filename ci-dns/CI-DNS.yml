@@ -61,9 +61,11 @@ storage:
                       body = json.loads(post_body)
                   except Exception:
                       self.send_response(422)
+                      self.end_headers()
                       print("Error, invalid JSON: {}".format(post_body))
                       return
                   self.send_response(200)
+                  self.end_headers()
                   if body.get('name'):
                       if body.get('action') == "remove":
                           if body['name'] in ENTRIES:
