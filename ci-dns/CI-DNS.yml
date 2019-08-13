@@ -10,6 +10,21 @@ passwd:
         - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC/Zc+pyRoKWVS1CVx2soRe7Ia7RGkASpXZE495H2XuS3gF4Vb9JdATkJ4NURmAQhUN8TYCbfqTcf2Fpm/5mtG6Dn8Avua1mXgNRvrufVYBvWkOn9qPEYkwELSG0WcqjpISwsKRAU0d7Mcqo0aDmp/wpgbXHCBG03Q8w0uhRTdI7jEj/EzatbtkgUJnE79OHUImxdG+11oKH0Ul2lQlSo+pMa0fwS3GrHKIxxZmMckSpT+gua0AttuGpr+JYIZKNkoWn7bMqpYpJAlKxjzaB6ympaIAOgd/CxXnXPzc8ntIm/MubDUbGzo7dpq39MmxtWb1bahS/zeyFq0ZR43FbHexZyj21PiurtFOXl93r+wgBLBcVjBogi23p8i+SrjOVb+nJJ5XEUaLDYYE7T4xnrmT/T0ODQQbh6W+F+/mCSwOpRsZV0+FYcWg34InQM177eBweAv5Lwtct6B0xzCCXYpNTjWpBUe46dP7FO0ltzD57CGglRyx7whff96Og7Zx61/YfR/zrfI4NYiP+4EbiN24NuTn0DvND/anCpvA1Zpsd7bNMvL9YrlCRD2lfcQl3p6Kqi48jLNpqjEMYEmgYzzGjE1hFuVqdjY63bAmD3+NPlfARsgbMiPpLAmb3nE5FTCWktUTE8fnoWIojUYm7/4HoVQlwWxRhLKji5NiJGMgYw== pprinett@redhat.com
 storage:
   files:
+    - path: /etc/iptables.rules
+      filesystem: root
+      mode: 0644
+      contents:
+        inline: |
+          *filter
+          :INPUT ACCEPT [0:0]
+          :FORWARD ACCEPT [0:0]
+          :OUTPUT ACCEPT [0:0]
+          -A INPUT -p udp --dport 53 -m string --string massopen --algo bm -j ACCEPT
+          -A INPUT -p udp --dport 53 -m string --string shiftstack --algo bm -j ACCEPT
+          -A INPUT -p udp --dport 53 -m string --string openshift --algo bm -j ACCEPT
+          -A INPUT -p udp --dport 53 -m string --string googleapis --algo bm -j ACCEPT
+          -A INPUT -p udp --dport 53 -j DROP
+          COMMIT
     - path: /etc/coredns/dynamic-update.py
       filesystem: root
       mode: 0644
@@ -130,6 +145,20 @@ storage:
 
 systemd:
   units:
+    - name: iptables.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Firewall
+        After=network.target
+        
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        ExecStart=/bin/sh -c "/sbin/iptables-restore < /etc/iptables.rules"
+        
+        [Install]
+        WantedBy=multi-user.target
     - name: ci-dns.service
       enabled: true
       contents: |
