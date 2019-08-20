@@ -7,9 +7,24 @@ passwd:
         - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDsboPPbyMRqyh1mchlrX8t3jHp6MWaOm6DEA55PJ8YwSHbzgabU8x/X6fXYIppne0570cvtQW4NZyURWjb6y5AANwRtNOVz5lsxC0tgPLOMKzyopG/fZc8tsqH0rMzwPghEIH4a7XK16MDCyOdK5va3S3VVupCo5SYjimxYBC1EinXG3brhYe7500S0E/U8hn+26W2f2o8bS2Z3KoUweAsyENVXH5Y/m+ia5g2JbUa132AVEtWnhhQpbZkskpbr2MqsjpBIchOp5mOfqElEGzeRjjn2Kd8yZov11cKKeYwGoKSPQHvjK6E1t+LYRA1UxTmyNy4M4gPfIBncDm3pHIz egarcia@emilio
         - ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA+yNMzUrQXa0EOfv+WJtfmLO1WdoOaD47G9qwllSUc4GPRkYzkTNdxcEPrR3XBR94ctOeWOHZ/w7ymhvwK5LLsoNBK+WgRz/mg8oHcii2GoL0fNojdwUMyFMIJxJT+iwjF/omyhyrW/aLAztAKRO7BdOkNlXMAAcMxKzQtFqdZm09ghoImu3BPYUTyDKHMp+t0P1d7mkHdd719oDfMf+5miHxQeJZJCWAsGwroN7k8a46rvezDHEygBsDAF2ZpS2iGMABos/vTp1oyHkCgCqc3rM0OoKqcKB5iQ9Qaqi5ung08BXP/PHfVynXzdGMjTh4w+6jiMw7Dx2GrQIJsDolKQ== dprince@redhat.com
         - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCpE2mGXMLZLBpWYMhO1Kz85FryqgD9zGStgTrY1x1Fspyjk4la9v2AYWsTCLISlNne3CdhaRmKjhYo7xdW9px8JCbPwtXqbCjOEuKsuHCtlbn+6ubZsJaYkImYAq3EEsi0cXMUCutrMPzMZaMCiaTIUhOXj+f1GY6zqVZlK2thJO9tzj5vAx1leWlwdn6CBM7ikXCQ6PVvqofki2pdV7V/HF3dmNCg1196/o8yH5x+ItithPJCvXytlIzi+5jy7YqGnei5jDUzqf0ZMS2OnJ7IkTz3vx322g3SUET/lYoFO5bjYbhAsLc83WM4Yvaw9FCEZCzKxMBQXK91oGH5siHT mfedosin@redhat.com
-        - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCmpF9kTKwqr1MXZbDRN/QyfbtHpekunhYYqJHWqiQPYlXpLg9gHyyk/TZiUxDt/6X9udE6goYSgSIpSw5xBnYGSDis+i1NVVv4ZlmLt8x3CwCoyB7Qk5zCmxCoOhPiSiVcgDGK10rhPfciVV++k2uN6d87IljvlNj192ruUF7nZw2UDhH5TG9Ox3A46NCOwlGec2oydtC+p7YGpltBAlg/mgDyuS0PwT+QYwUedHhx/fGQbgQj9BlOGL9UdxCyGRqyadmbmdT/8H30zW1mwQZnGHIREtqrIZLIXJhCN6rdSy7uDY7/ccdRjmxNvVnMwMzxb8qGgMsBXaBqIFGsQB7dcKvO2QrfGFcnbZmJ2XC8zgMnABxywBLQDBY3+2cjthafUNRKpyVE1xDrm1d1tfWRm8I77D2y3s4Mtgh2qkJQ6gLCYmo4GpajZ2w+9y45a7Keup9XmiHcdI0UoPETsXMYqlR2TX3TiMth4fjjoxpJJft4hIckvUEc8MrQfDHFN2GIj/m+rT1WkjKqZuu0W2R36pmO+7aT72eAEAc1JdqCNURQsy5byybtbqw5EfugX59f9Kj95955yfBpCofh3praWOjcX0l+gEUBfVBneqFukoqnkYiEddkRJT59Z7yxe+ZjzgxeTj9O2vtggABWXPDw79vg1OFea1byuxjRZfCS5Q== pprinett@redhat.com
+        - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC/Zc+pyRoKWVS1CVx2soRe7Ia7RGkASpXZE495H2XuS3gF4Vb9JdATkJ4NURmAQhUN8TYCbfqTcf2Fpm/5mtG6Dn8Avua1mXgNRvrufVYBvWkOn9qPEYkwELSG0WcqjpISwsKRAU0d7Mcqo0aDmp/wpgbXHCBG03Q8w0uhRTdI7jEj/EzatbtkgUJnE79OHUImxdG+11oKH0Ul2lQlSo+pMa0fwS3GrHKIxxZmMckSpT+gua0AttuGpr+JYIZKNkoWn7bMqpYpJAlKxjzaB6ympaIAOgd/CxXnXPzc8ntIm/MubDUbGzo7dpq39MmxtWb1bahS/zeyFq0ZR43FbHexZyj21PiurtFOXl93r+wgBLBcVjBogi23p8i+SrjOVb+nJJ5XEUaLDYYE7T4xnrmT/T0ODQQbh6W+F+/mCSwOpRsZV0+FYcWg34InQM177eBweAv5Lwtct6B0xzCCXYpNTjWpBUe46dP7FO0ltzD57CGglRyx7whff96Og7Zx61/YfR/zrfI4NYiP+4EbiN24NuTn0DvND/anCpvA1Zpsd7bNMvL9YrlCRD2lfcQl3p6Kqi48jLNpqjEMYEmgYzzGjE1hFuVqdjY63bAmD3+NPlfARsgbMiPpLAmb3nE5FTCWktUTE8fnoWIojUYm7/4HoVQlwWxRhLKji5NiJGMgYw== pprinett@redhat.com
 storage:
   files:
+    - path: /etc/iptables.rules
+      filesystem: root
+      mode: 0644
+      contents:
+        inline: |
+          *filter
+          :INPUT ACCEPT [0:0]
+          :FORWARD ACCEPT [0:0]
+          :OUTPUT ACCEPT [0:0]
+          -A INPUT -p udp --dport 53 -m string --string massopen --algo bm -j ACCEPT
+          -A INPUT -p udp --dport 53 -m string --string shiftstack --algo bm -j ACCEPT
+          -A INPUT -p udp --dport 53 -m string --string openshift --algo bm -j ACCEPT
+          -A INPUT -p udp --dport 53 -m string --string googleapis --algo bm -j ACCEPT
+          -A INPUT -p udp --dport 53 -j DROP
+          COMMIT
     - path: /etc/coredns/dynamic-update.py
       filesystem: root
       mode: 0644
@@ -130,6 +145,20 @@ storage:
 
 systemd:
   units:
+    - name: iptables.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Firewall
+        After=network.target
+        
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        ExecStart=/bin/sh -c "/sbin/iptables-restore < /etc/iptables.rules"
+        
+        [Install]
+        WantedBy=multi-user.target
     - name: ci-dns.service
       enabled: true
       contents: |
