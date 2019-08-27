@@ -19,11 +19,8 @@ storage:
           :INPUT ACCEPT [0:0]
           :FORWARD ACCEPT [0:0]
           :OUTPUT ACCEPT [0:0]
-          -A INPUT -p udp --dport 53 -m string --string massopen --algo bm -j ACCEPT
-          -A INPUT -p udp --dport 53 -m string --string shiftstack --algo bm -j ACCEPT
-          -A INPUT -p udp --dport 53 -m string --string openshift --algo bm -j ACCEPT
-          -A INPUT -p udp --dport 53 -m string --string googleapis --algo bm -j ACCEPT
-          -A INPUT -p udp --dport 53 -j DROP
+          -A INPUT -p udp --dport 53 -s 192.168.23.0/24 -j ACCEPT -m comment --comment "accept DNS queries from internal network"
+          -A INPUT -p udp --dport 53 -j DROP -m comment --comment "drop all DNS queries from outside"
           COMMIT
     - path: /etc/coredns/dynamic-update.py
       filesystem: root
@@ -33,13 +30,16 @@ storage:
           import http.server
           import socketserver
           import json
-     
+          import logging
+          import os
+
           # Edit these to suit your needs:
           PORT = 8080
           DOMAIN = "shiftstack.ci"
           COREDB_FILE = "/etc/coredns/db.{}".format(DOMAIN)
-     
-     
+          LOG_FILE = "/var/log/dynamic-dns-updater.log"
+
+
           # You should probably not touch these unless you want to hardcode some records
           COREDB_TEMPLATE = """
           $ORIGIN {domain}.
@@ -50,59 +50,115 @@ storage:
                                           1209600    ; expire (2 weeks)
                                           3600       ; minimum (1 hour)
                                           )
-     
+
           {entries}
           """
           ENTRIES = {}
           SERIAL_NUMBER = 0
-     
-     
+
+
           def build_coredb_file(domain, serial_number, entries):
               formatted_entries = '\n'.join("{} IN A {}".format(name, ip) for name, ip
-                  in entries.items())
+                                            in entries.items())
               return COREDB_TEMPLATE.format(domain=domain, serial=serial_number,
-                  entries=formatted_entries)
-     
-     
+                                            entries=formatted_entries)
+
+
           class ServerHandler(http.server.SimpleHTTPRequestHandler):
               def do_POST(self):
-                  global ENTRIES
-                  global SERIAL_NUMBER
-                  global DOMAIN
                   content_len = int(self.headers.get('content-length', 0))
                   post_body = self.rfile.read(content_len)
                   body = ""
+                  client_address = self.client_address[0]
                   try:
                       body = json.loads(post_body)
                   except Exception:
                       self.send_response(422)
                       self.end_headers()
-                      print("Error, invalid JSON: {}".format(post_body))
+                      logging.warning("Invalid JSON from {}".format(client_address))
                       return
                   self.send_response(200)
                   self.end_headers()
+
+                  if self.path == "/add":
+                      self.process_add(body, client_address)
+                  elif self.path == "/remove":
+                      self.process_remove(body, client_address)
+                  else:
+                      self.process_generic(body, client_address)
+
+              def write_db_file(self):
+                  global ENTRIES
+                  global SERIAL_NUMBER
+                  global DOMAIN
+                  SERIAL_NUMBER += 1
+                  db = build_coredb_file(DOMAIN, SERIAL_NUMBER, ENTRIES)
+                  logging.info("Writing version {} to file {}".format(SERIAL_NUMBER,
+                                                                      COREDB_FILE))
+                  with open(COREDB_FILE, 'w') as f:
+                      f.write(db)
+
+              def process_add(self, body, client_address):
+                  global ENTRIES
+                  if body.get('cluster_name') \
+                          and body.get('lb_fip') \
+                          and body.get('apps_fip'):
+                      logging.info("Adding {} and {} entries for {}".format(
+                          body['lb_fip'], body['apps_fip'], body['cluster_name']))
+                      ENTRIES["api.{}".format(body['cluster_name'])] = body['lb_fip']
+                      ENTRIES["*.apps.{}".format(body['cluster_name'])] = \
+                          body['apps_fip']
+                      self.write_db_file()
+                      os.system("/sbin/iptables -I INPUT -p udp --dport 53 -j ACCEPT "
+                                "-s {} -m comment --comment '{}'".format(
+                                    client_address, body['cluster_name']))
+                  else:
+                      logging.warning("Invalid JSON from {}".format(client_address))
+
+              def process_remove(self, body, client_address):
+                  global ENTRIES
+                  if body.get('cluster_name'):
+                      if "api.{}".format(body['cluster_name']) in ENTRIES:
+                          del ENTRIES["api.{}".format(body['cluster_name'])]
+                      if "*.apps.{}".format(body['cluster_name']) in ENTRIES:
+                          del ENTRIES["*.apps.{}".format(body['cluster_name'])]
+                      logging.info("Removing entries for {}".format(
+                          body['cluster_name']))
+                      self.write_db_file()
+                      os.system("/sbin/iptables -D INPUT -p udp --dport 53 -j ACCEPT "
+                                "-s {} -m comment --comment '{}'".format(
+                                    client_address, body['cluster_name']))
+                  else:
+                      logging.warning("Invalid JSON from {}".format(client_address))
+
+              # TODO(mandre) Remove this when the CI send requests to /add and
+              # /remove
+              def process_generic(self, body, client_address):
+                  global ENTRIES
                   if body.get('name'):
                       if body.get('action') == "remove":
                           if body['name'] in ENTRIES:
+                              logging.info("Removing entry for {}".format(body['name']))
                               del ENTRIES[body['name']]
                       elif body.get('ip'):
+                          logging.info("Adding {} entry for {}".format(body['ip'],
+                                                                       body['name']))
                           ENTRIES[body['name']] = body['ip']
                       else:
-                          print("Invalid format of body", repr(body))
+                          logging.warning("Invalid JSON from {}".format(client_address))
                           return
-                      SERIAL_NUMBER += 1
-                      db = build_coredb_file(DOMAIN, SERIAL_NUMBER, ENTRIES)
-                      print("Writing version {} to file {}".format(SERIAL_NUMBER, COREDB_FILE))
-                      with open(COREDB_FILE, 'w') as f:
-                          f.write(db)
+                      self.write_db_file()
                   else:
-                      print("Invalid format of body", repr(body))
-     
-     
+                      logging.warning("Invalid JSON from {}".format(client_address))
+
+
           if __name__ == '__main__':
               Handler = ServerHandler
+              logging.basicConfig(filename=LOG_FILE,
+                                  format='%(asctime)s - %(levelname)s - %(message)s',
+                                  level=logging.DEBUG)
+              logging.info("Serving at port %s", PORT)
               httpd = socketserver.TCPServer(("", PORT), Handler)
-              print("serving at port", PORT)
               httpd.serve_forever()
 
     - path: /etc/coredns/Corefile
@@ -151,12 +207,12 @@ systemd:
         [Unit]
         Description=Firewall
         After=network.target
-        
+
         [Service]
         Type=oneshot
         RemainAfterExit=yes
         ExecStart=/bin/sh -c "/sbin/iptables-restore < /etc/iptables.rules"
-        
+
         [Install]
         WantedBy=multi-user.target
     - name: ci-dns.service
