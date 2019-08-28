@@ -102,20 +102,38 @@ storage:
                   with open(COREDB_FILE, 'w') as f:
                       f.write(db)
 
+              def iptables_rule(self, address, comment):
+                  return "INPUT -p udp --dport 53 -j ACCEPT -s {} " \
+                      "-m comment --comment '{}'".format(address, comment)
+
+              def add_iptables_rule(self, address, comment):
+                  rule = self.iptables_rule(address, comment)
+                  self.ensure_iptables_rule("insert", rule)
+
+              def remove_iptables_rule(self, address, comment):
+                  rule = self.iptables_rule(address, comment)
+                  self.ensure_iptables_rule("delete", rule)
+
+              def ensure_iptables_rule(self, command, rule):
+                  # iptables --check returns 0 if the rule exists
+                  if (command == 'insert' and
+                    os.system("/sbin/iptables --check {}".format(rule)) == 0):
+                      return
+
+                  os.system("/sbin/iptables --{} {}".format(command, rule))
+
               def process_add(self, body, client_address):
                   global ENTRIES
-                  if body.get('cluster_name') \
-                          and body.get('lb_fip') \
-                          and body.get('apps_fip'):
-                      logging.info("Adding {} and {} entries for {}".format(
-                          body['lb_fip'], body['apps_fip'], body['cluster_name']))
-                      ENTRIES["api.{}".format(body['cluster_name'])] = body['lb_fip']
-                      ENTRIES["*.apps.{}".format(body['cluster_name'])] = \
-                          body['apps_fip']
+                  if body.get('cluster_name') and \
+                          (body.get('lb_fip') or body.get('apps_fip')):
+                      logging.info("Adding entries for {}".format(body['cluster_name']))
+                      if body.get('lb_fip'):
+                          ENTRIES["api.{}".format(body['cluster_name'])] = body['lb_fip']
+                      if body.get('apps_fip'):
+                          ENTRIES["*.apps.{}".format(body['cluster_name'])] = \
+                              body['apps_fip']
                       self.write_db_file()
-                      os.system("/sbin/iptables -I INPUT -p udp --dport 53 -j ACCEPT "
-                                "-s {} -m comment --comment '{}'".format(
-                                    client_address, body['cluster_name']))
+                      self.add_iptables_rule(client_address, body['cluster_name'])
                   else:
                       logging.warning("Invalid JSON from {}".format(client_address))
 
@@ -129,9 +147,7 @@ storage:
                       logging.info("Removing entries for {}".format(
                           body['cluster_name']))
                       self.write_db_file()
-                      os.system("/sbin/iptables -D INPUT -p udp --dport 53 -j ACCEPT "
-                                "-s {} -m comment --comment '{}'".format(
-                                    client_address, body['cluster_name']))
+                      self.remove_iptables_rule(client_address, body['cluster_name'])
                   else:
                       logging.warning("Invalid JSON from {}".format(client_address))
 
