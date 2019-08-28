@@ -19,6 +19,10 @@ storage:
           :INPUT ACCEPT [0:0]
           :FORWARD ACCEPT [0:0]
           :OUTPUT ACCEPT [0:0]
+          -A INPUT -p udp --dport 53 -m string --string massopen --algo bm -j ACCEPT
+          -A INPUT -p udp --dport 53 -m string --string shiftstack --algo bm -j ACCEPT
+          -A INPUT -p udp --dport 53 -m string --string openshift --algo bm -j ACCEPT
+          -A INPUT -p udp --dport 53 -m string --string googleapis --algo bm -j ACCEPT
           -A INPUT -p udp --dport 53 -s 192.168.23.0/24 -j ACCEPT -m comment --comment "accept DNS queries from internal network"
           -A INPUT -p udp --dport 53 -j DROP -m comment --comment "drop all DNS queries from outside"
           COMMIT
