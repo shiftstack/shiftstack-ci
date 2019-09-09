@@ -21,6 +21,8 @@ for network in $(openstack network list -c Name -f value); do
         CREATION_TIMESTAMP=$(date --date="$CREATION_TIME" +%s)
         if [[ $CREATION_TIMESTAMP < $VALID_LIMIT ]]; then
             CLUSTER_ID=${network/-openshift/}
+            echo Removing rules for ci-dns
+            curl -v 128.31.27.48:8080/remove -d '{"cluster_name": "'$CLUSTER_ID'"}'
             echo Destroying $CLUSTER_ID
             time ./destroy_cluster.sh -i $CLUSTER_ID
         fi
