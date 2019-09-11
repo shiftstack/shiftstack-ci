@@ -73,6 +73,11 @@ CLUSTER_NAME       What your ocp cluster will be nicknamed. This naming scheme i
 OPENSTACK_REGION   The cluster region that resources will be consumed from. For the moc, use moc-kzn
 ```
 
+Finally you need to obtain a pull secret from [here](https://cloud.redhat.com/openshift/install/osp/installer-provisioned),
+and replace `PULL_SECRET` vaiable with the new value. If you don't do this
+you can still install the cluster, but you won't be able to create new
+applications in OpenShift because you won't have access to private images.
+
 Once this has been set up, you can proceed with building the installer.
 
 ## Building the Installer
