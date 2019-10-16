@@ -73,6 +73,25 @@
 
 # Transform yml to ign file using https://github.com/coreos/container-linux-config-transpiler
 
+NAME=ci-dns
+
+opts=$(getopt -n "$0" -o "n:" --long "name:"  -- "$@")
+
+eval set --$opts
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -n|--name)
+            NAME=$2
+            shift 2
+            ;;
+
+        *)
+            break
+            ;;
+    esac
+done
+
 ci_dns_net_id=$(openstack network show ci-dns -f value -c id)
 
 openstack server create \
@@ -83,4 +102,4 @@ openstack server create \
 	--security-group ci-dns \
 	--config-drive=true \
 	--nic net-id=${ci_dns_net_id} \
-	ci-dns
+	${NAME}
