@@ -28,7 +28,6 @@ storage:
       contents:
         inline: |
           import http.server
-          import socketserver
           import json
           import logging
           import os
@@ -147,13 +146,12 @@ storage:
 
 
           if __name__ == '__main__':
-              Handler = ServerHandler
               logging.basicConfig(filename=LOG_FILE,
                                   format='%(asctime)s - %(levelname)s - %(message)s',
                                   level=logging.DEBUG)
-              logging.info("Serving at port %s", PORT)
-              httpd = socketserver.TCPServer(("", PORT), Handler)
-              httpd.serve_forever()
+              with http.server.HTTPServer(("", PORT), ServerHandler) as httpd:
+                  logging.info("Serving at port %s", PORT)
+                  httpd.serve_forever()
 
     - path: /etc/coredns/Corefile
       filesystem: root
