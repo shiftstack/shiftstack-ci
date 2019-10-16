@@ -73,6 +73,8 @@
 
 # Transform yml to ign file using https://github.com/coreos/container-linux-config-transpiler
 
+ci_dns_net_id=$(openstack network show ci-dns -f value -c id)
+
 openstack server create \
 	--user-data ./CI-DNS.ign \
 	--image rhcos \
@@ -80,5 +82,5 @@ openstack server create \
 	--security-group default \
 	--security-group ci-dns \
 	--config-drive=true \
-	--nic net-id=b978d863-7437-465d-86df-d1a5686f797f \
+	--nic net-id=${ci_dns_net_id} \
 	ci-dns
