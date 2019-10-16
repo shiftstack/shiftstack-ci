@@ -88,8 +88,6 @@ storage:
                       self.process_add(body, client_address)
                   elif self.path == "/remove":
                       self.process_remove(body, client_address)
-                  else:
-                      self.process_generic(body, client_address)
 
               def write_db_file(self):
                   global ENTRIES
@@ -148,26 +146,6 @@ storage:
                           body['cluster_name']))
                       self.write_db_file()
                       self.remove_iptables_rule(client_address, body['cluster_name'])
-                  else:
-                      logging.warning("Invalid JSON from {}".format(client_address))
-
-              # TODO(mandre) Remove this when the CI send requests to /add and
-              # /remove
-              def process_generic(self, body, client_address):
-                  global ENTRIES
-                  if body.get('name'):
-                      if body.get('action') == "remove":
-                          if body['name'] in ENTRIES:
-                              logging.info("Removing entry for {}".format(body['name']))
-                              del ENTRIES[body['name']]
-                      elif body.get('ip'):
-                          logging.info("Adding {} entry for {}".format(body['ip'],
-                                                                       body['name']))
-                          ENTRIES[body['name']] = body['ip']
-                      else:
-                          logging.warning("Invalid JSON from {}".format(client_address))
-                          return
-                      self.write_db_file()
                   else:
                       logging.warning("Invalid JSON from {}".format(client_address))
 
