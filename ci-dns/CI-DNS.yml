@@ -109,6 +109,9 @@ storage:
 
               def ensure_iptables_rule(self, command, rule):
                   # iptables --check returns 0 if the rule exists
+                  # It also generates harmless "iptables: Bad rule (does a matching rule
+                  # exist in that chain?)." comments in the logs when the rule does not
+                  # yet exist.
                   if (command == 'insert' and
                     os.system("/sbin/iptables --check {}".format(rule)) == 0):
                       return
