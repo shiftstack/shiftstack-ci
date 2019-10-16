@@ -19,10 +19,6 @@ storage:
           :INPUT ACCEPT [0:0]
           :FORWARD ACCEPT [0:0]
           :OUTPUT ACCEPT [0:0]
-          -A INPUT -p udp --dport 53 -m string --string massopen --algo bm -j ACCEPT
-          -A INPUT -p udp --dport 53 -m string --string shiftstack --algo bm -j ACCEPT
-          -A INPUT -p udp --dport 53 -m string --string openshift --algo bm -j ACCEPT
-          -A INPUT -p udp --dport 53 -m string --string googleapis --algo bm -j ACCEPT
           -A INPUT -p udp --dport 53 -s 192.168.23.0/24 -j ACCEPT -m comment --comment "accept DNS queries from internal network"
           -A INPUT -p udp --dport 53 -j DROP -m comment --comment "drop all DNS queries from outside"
           COMMIT
@@ -32,7 +28,6 @@ storage:
       contents:
         inline: |
           import http.server
-          import socketserver
           import json
           import logging
           import os
@@ -88,8 +83,6 @@ storage:
                       self.process_add(body, client_address)
                   elif self.path == "/remove":
                       self.process_remove(body, client_address)
-                  else:
-                      self.process_generic(body, client_address)
 
               def write_db_file(self):
                   global ENTRIES
@@ -116,6 +109,9 @@ storage:
 
               def ensure_iptables_rule(self, command, rule):
                   # iptables --check returns 0 if the rule exists
+                  # It also generates harmless "iptables: Bad rule (does a matching rule
+                  # exist in that chain?)." comments in the logs when the rule does not
+                  # yet exist.
                   if (command == 'insert' and
                     os.system("/sbin/iptables --check {}".format(rule)) == 0):
                       return
@@ -151,35 +147,14 @@ storage:
                   else:
                       logging.warning("Invalid JSON from {}".format(client_address))
 
-              # TODO(mandre) Remove this when the CI send requests to /add and
-              # /remove
-              def process_generic(self, body, client_address):
-                  global ENTRIES
-                  if body.get('name'):
-                      if body.get('action') == "remove":
-                          if body['name'] in ENTRIES:
-                              logging.info("Removing entry for {}".format(body['name']))
-                              del ENTRIES[body['name']]
-                      elif body.get('ip'):
-                          logging.info("Adding {} entry for {}".format(body['ip'],
-                                                                       body['name']))
-                          ENTRIES[body['name']] = body['ip']
-                      else:
-                          logging.warning("Invalid JSON from {}".format(client_address))
-                          return
-                      self.write_db_file()
-                  else:
-                      logging.warning("Invalid JSON from {}".format(client_address))
-
 
           if __name__ == '__main__':
-              Handler = ServerHandler
               logging.basicConfig(filename=LOG_FILE,
                                   format='%(asctime)s - %(levelname)s - %(message)s',
                                   level=logging.DEBUG)
-              logging.info("Serving at port %s", PORT)
-              httpd = socketserver.TCPServer(("", PORT), Handler)
-              httpd.serve_forever()
+              with http.server.HTTPServer(("", PORT), ServerHandler) as httpd:
+                  logging.info("Serving at port %s", PORT)
+                  httpd.serve_forever()
 
     - path: /etc/coredns/Corefile
       filesystem: root
