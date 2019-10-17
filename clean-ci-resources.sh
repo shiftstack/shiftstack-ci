@@ -16,7 +16,7 @@ fi
 VALID_LIMIT=$(date --date='-5 hours' +%s)
 
 for network in $(openstack network list -c Name -f value); do
-    if [[ $network == ci-op-*-openshift ]]; then
+    if [[ $network == *-*-openshift ]]; then
         CREATION_TIME=$(openstack network show $network -c created_at -f value)
         CREATION_TIMESTAMP=$(date --date="$CREATION_TIME" +%s)
         if [[ $CREATION_TIMESTAMP < $VALID_LIMIT ]]; then
