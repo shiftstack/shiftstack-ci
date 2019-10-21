@@ -23,6 +23,7 @@ storage:
           -A INPUT -p udp --dport 53 -m string --string shiftstack --algo bm -j ACCEPT
           -A INPUT -p udp --dport 53 -m string --string openshift --algo bm -j ACCEPT
           -A INPUT -p udp --dport 53 -m string --string googleapis --algo bm -j ACCEPT
+          -A INPUT -p udp --dport 53 -m string --string boskos --algo bm -j ACCEPT
           -A INPUT -p udp --dport 53 -s 192.168.23.0/24 -j ACCEPT -m comment --comment "accept DNS queries from internal network"
           -A INPUT -p udp --dport 53 -j DROP -m comment --comment "drop all DNS queries from outside"
           COMMIT
@@ -168,6 +169,12 @@ storage:
           . {
               log
               errors
+
+              hosts {
+                # This is the IP address of the boskos service inside the CI cluster
+                172.30.131.17 boskos.ci
+                fallthrough
+              }
 
               forward . /etc/resolv.conf {
                   except shiftstack.ci
