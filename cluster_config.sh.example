@@ -10,7 +10,8 @@ export OPENSTACK_FLAVOR=m1.xlarge
 export OPENSTACK_WORKER_FLAVOR=m1.large
 export BASE_DOMAIN=shiftstack.com
 export OPENSTACK_EXTERNAL_NETWORK=external
-export PULL_SECRET='{"auths": { "quay.io": { "auth": "Y29yZW9zK3RlYzJfaWZidWdsa2VndmF0aXJyemlqZGMybnJ5ZzpWRVM0SVA0TjdSTjNROUUwMFA1Rk9NMjdSQUZNM1lIRjRYSzQ2UlJBTTFZQVdZWTdLOUFIQlM1OVBQVjhEVlla", "email": "" }}}'
+# Get your own pull secret from try.openshift.com
+export PULL_SECRET='{"auths": { "quay.io": { "auth": "xxx", "email": "" }}}'
 export SSH_PUB_KEY="`cat $HOME/.ssh/id_rsa.pub`"
 
 # The installer automatically uploads the RHCOS image to glance.
