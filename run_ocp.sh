@@ -12,6 +12,8 @@ source ${CONFIG}
 
 set -x
 
+declare -r installer="${OPENSHIFT_INSTALLER:-$GOPATH/src/github.com/openshift/installer/bin/openshift-install}"
+
 # check whether we have a free floating IP
 FLOATING_IP=$(openstack floating ip list --status DOWN --network $OPENSTACK_EXTERNAL_NETWORK --long --format value -c "Floating IP Address" -c Description | sed 's/ .*//g')
 FLOATING_IP=$(echo $FLOATING_IP | cut -d ' ' -f1)
@@ -96,7 +98,7 @@ sshKey: |
 EOF
 fi
 
-$GOPATH/src/github.com/openshift/installer/bin/openshift-install --log-level=debug ${1:-create} ${2:-cluster} --dir $CLUSTER_NAME
+"$installer" --log-level=debug ${1:-create} ${2:-cluster} --dir $CLUSTER_NAME
 
 # Attaching FIP to ingress port to access the cluster from outside
 # check whether we have a free floating IP
