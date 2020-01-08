@@ -33,6 +33,9 @@ if [ $BRANCH == "4.2" ]; then
 elif [ $BRANCH == "4.3" ]; then
     REAL_BRANCH_NAME="release-$BRANCH"
     IMAGE_NAME="rhcos-$BRANCH"
+elif [ $BRANCH == "4.4" ]; then
+    REAL_BRANCH_NAME="release-$BRANCH"
+    IMAGE_NAME="rhcos-$BRANCH"
 else
     echo "Unknown branch $BRANCH"
     exit
