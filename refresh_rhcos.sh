@@ -8,6 +8,7 @@ if [ -z "$OS_CLOUD" ]; then
 fi
 
 BRANCH="4.2"
+DISK_FORMAT="qcow2"
 
 opts=$(getopt -n "$0"  -o "b:" --long "branch:"  -- "$@")
 
@@ -50,7 +51,14 @@ IMAGE_SHA="$(jq --raw-output '.images.openstack."uncompressed-sha256"' $RHCOS_VE
 IMAGE_VERSION="$(jq --raw-output '."ostree-version"' $RHCOS_VERSIONS_FILE)"
 rm $RHCOS_VERSIONS_FILE
 
-if openstack image show -c properties -f json $IMAGE_NAME | grep -q "$IMAGE_VERSION"; then
+properties=$(openstack image show -c properties -f json $IMAGE_NAME)
+
+if echo ${properties} | grep -q "rbd://"; then
+    echo "Detected Ceph backend for glance, will upload the image as raw"
+    DISK_FORMAT="raw"
+fi
+
+if echo ${properties} | grep -q "$IMAGE_VERSION"; then
     echo "RHCOS image already at the latest version $IMAGE_VERSION"
     exit
 fi
@@ -71,8 +79,18 @@ if ! sha256sum $LOCAL_IMAGE_FILE | grep -q $IMAGE_SHA; then
     exit 1
 fi
 
+if [[ ${DISK_FORMAT} == "raw" ]]; then
+    echo "Converting qcow2 image to raw..."
+    raw_image_name=${LOCAL_IMAGE_FILE/qcow2/raw}
+    if [ -f ${raw_image_name} ]; then
+        rm ${raw_image_name}
+    fi
+    qemu-img convert -p -f qcow2 -O raw $LOCAL_IMAGE_FILE ${raw_image_name}
+    LOCAL_IMAGE_FILE=${raw_image_name}
+fi
+
 echo "Uploading image to ${OS_CLOUD} as $IMAGE_NAME-new"
-openstack image create $IMAGE_NAME-new --container-format bare --disk-format qcow2 --file ${LOCAL_IMAGE_FILE} --private --property version=$IMAGE_VERSION
+openstack image create $IMAGE_NAME-new --container-format bare --disk-format ${DISK_FORMAT} --file ${LOCAL_IMAGE_FILE} --private --property version=$IMAGE_VERSION
 
 echo "Replace old $IMAGE_NAME image with new one on ${OS_CLOUD}"
 
