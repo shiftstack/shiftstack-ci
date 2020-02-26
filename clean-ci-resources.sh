@@ -8,7 +8,7 @@ if [ ! -r "$CONFIG" ]; then
 fi
 source ./${CONFIG}
 
-if ! openstack floating ip show 128.31.27.48 > /dev/null 2>&1;  then
+if ! openstack security group show '8a1289c1-0584-453a-935c-9a3df67aef32' > /dev/null 2>&1;  then
     echo "Refusing to run on anything else than the CI tenant"
     exit
 fi
