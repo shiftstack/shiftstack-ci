@@ -13,16 +13,7 @@ if ! openstack security group show '8a1289c1-0584-453a-935c-9a3df67aef32' > /dev
     exit
 fi
 
-VALID_LIMIT=$(date --date='-5 hours' +%s)
-
-for network in $(openstack network list -c Name -f value); do
-    if [[ $network == *-*-openshift ]]; then
-        CREATION_TIME=$(openstack network show $network -c created_at -f value)
-        CREATION_TIMESTAMP=$(date --date="$CREATION_TIME" +%s)
-        if [[ $CREATION_TIMESTAMP < $VALID_LIMIT ]]; then
-            CLUSTER_ID=${network/-openshift/}
-            echo Destroying $CLUSTER_ID
-            time ./destroy_cluster.sh -i $CLUSTER_ID
-        fi
-    fi
+for cluster_id in $(./list-clusters -ls); do
+	echo Destroying "$cluster_id"
+	time ./destroy_cluster.sh -i "$cluster_id"
 done
