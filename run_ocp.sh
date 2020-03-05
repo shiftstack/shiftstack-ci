@@ -88,7 +88,6 @@ platform:
   openstack:
     cloud:            ${OS_CLOUD}
     externalNetwork:  ${OPENSTACK_EXTERNAL_NETWORK}
-    region:           ${OPENSTACK_REGION}
     computeFlavor:    ${OPENSTACK_FLAVOR}
     lbFloatingIP:     ${FLOATING_IP}
 pullSecret: |
