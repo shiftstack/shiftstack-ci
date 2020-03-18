@@ -30,15 +30,9 @@ if [ $BRANCH == "4.2" ]; then
     REAL_BRANCH_NAME="release-$BRANCH"
     # We want to leave 4.2 image under the rhcos name
     IMAGE_NAME="rhcos"
-elif [ $BRANCH == "4.3" ]; then
-    REAL_BRANCH_NAME="release-$BRANCH"
-    IMAGE_NAME="rhcos-$BRANCH"
-elif [ $BRANCH == "4.4" ]; then
-    REAL_BRANCH_NAME="release-$BRANCH"
-    IMAGE_NAME="rhcos-$BRANCH"
 else
-    echo "Unknown branch $BRANCH"
-    exit
+    REAL_BRANCH_NAME="release-$BRANCH"
+    IMAGE_NAME="rhcos-$BRANCH"
 fi
 
 LOCAL_IMAGE_FILE=rhcos-latest.qcow2
