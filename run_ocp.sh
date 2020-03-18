@@ -57,6 +57,19 @@ fi
 
 : "${OPENSTACK_WORKER_FLAVOR:=${OPENSTACK_FLAVOR}}"
 
+MASTER_ROOT_VOLUME=""
+if [[ ${OPENSTACK_MASTER_VOLUME_TYPE} != "" ]]; then
+  MASTER_ROOT_VOLUME="rootVolume:
+        size: ${OPENSTACK_MASTER_VOLUME_SIZE:-25}
+        type: ${OPENSTACK_MASTER_VOLUME_TYPE}"
+fi
+WORKER_ROOT_VOLUME=""
+if [[ ${OPENSTACK_WORKER_VOLUME_TYPE} != "" ]]; then
+  WORKER_ROOT_VOLUME="rootVolume:
+        size: ${OPENSTACK_WORKER_VOLUME_SIZE:-25}
+        type: ${OPENSTACK_WORKER_VOLUME_TYPE}"
+fi
+
 if [ ! -f $CLUSTER_NAME/install-config.yaml ]; then
     export CLUSTER_ID=$(uuidgen --random)
     cat > $CLUSTER_NAME/install-config.yaml << EOF
@@ -69,11 +82,15 @@ compute:
   platform:
     openstack:
       type: ${OPENSTACK_WORKER_FLAVOR}
+      ${WORKER_ROOT_VOLUME}
   replicas: ${WORKER_COUNT}
 controlPlane:
   hyperthreading: Enabled
   name: master
-  platform: {}
+  platform:
+    openstack:
+      type: ${OPENSTACK_FLAVOR}
+      ${MASTER_ROOT_VOLUME}
   replicas: ${MASTER_COUNT}
 metadata:
   name: ${CLUSTER_NAME}
