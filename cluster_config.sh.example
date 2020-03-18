@@ -5,7 +5,6 @@ export CLUSTER_NAME=""
 export MASTER_COUNT=2
 export WORKER_COUNT=1
 export OPENSHIFT_INSTALL_DATA="$GOPATH/src/github.com/openshift/installer/data/data"
-export OPENSTACK_REGION=moc-kzn
 export OPENSTACK_FLAVOR=m1.xlarge
 export OPENSTACK_WORKER_FLAVOR=m1.large
 export BASE_DOMAIN=shiftstack.com

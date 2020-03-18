@@ -70,7 +70,6 @@ Here is a rundown of the important fields you will likely have to modify:
 ```
 OS_CLOUD           The cloud in your openstack cluster that resources will be consumed from.
 CLUSTER_NAME       What your ocp cluster will be nicknamed. This naming scheme is propogated to all resources in the cluster.
-OPENSTACK_REGION   The cluster region that resources will be consumed from. For the moc, use moc-kzn
 ```
 
 Finally you need to obtain a pull secret from [here](https://cloud.redhat.com/openshift/install/osp/installer-provisioned),
