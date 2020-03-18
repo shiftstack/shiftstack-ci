@@ -60,7 +60,7 @@ fi
 if [ ! -f $CLUSTER_NAME/install-config.yaml ]; then
     export CLUSTER_ID=$(uuidgen --random)
     cat > $CLUSTER_NAME/install-config.yaml << EOF
-apiVersion: v1beta3
+apiVersion: v1
 baseDomain: ${BASE_DOMAIN}
 clusterID:  ${CLUSTER_ID}
 compute:
@@ -78,12 +78,14 @@ controlPlane:
 metadata:
   name: ${CLUSTER_NAME}
 networking:
-  clusterNetworks:
-  - cidr:             10.128.0.0/14
-    hostSubnetLength: 9
-  serviceCIDR: 172.30.0.0/16
-  machineCIDR: 10.0.128.0/17
-  type:        OpenshiftSDN
+  clusterNetwork:
+  - cidr: 10.128.0.0/14
+    hostPrefix: 23
+  machineNetwork:
+  - cidr: 10.0.128.0/17
+  networkType: OpenShiftSDN
+  serviceNetwork:
+  - 172.30.0.0/16
 platform:
   openstack:
     cloud:            ${OS_CLOUD}
