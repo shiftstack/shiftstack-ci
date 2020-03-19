@@ -6,7 +6,15 @@ export MASTER_COUNT=2
 export WORKER_COUNT=1
 export OPENSHIFT_INSTALL_DATA="$GOPATH/src/github.com/openshift/installer/data/data"
 export OPENSTACK_FLAVOR=m1.xlarge
+# If not defined, workers use the same flavor as controllers
 export OPENSTACK_WORKER_FLAVOR=m1.large
+
+# Uncomment the following to use boot from volume
+# export OPENSTACK_MASTER_VOLUME_TYPE=performance
+# export OPENSTACK_MASTER_VOLUME_SIZE=25
+# export OPENSTACK_WORKER_VOLUME_TYPE=performance
+# export OPENSTACK_WORKER_VOLUME_SIZE=25
+
 export BASE_DOMAIN=shiftstack.com
 export OPENSTACK_EXTERNAL_NETWORK=external
 # Get your own pull secret from try.openshift.com
