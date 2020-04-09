@@ -13,6 +13,9 @@ opts=$(getopt -n "$0"  -o "b:" --long 'branch:'  -- "$@")
 
 eval set "--$opts"
 
+CACHE_DIR="${XDG_CACHE_HOME:-${HOME}/.cache}/openshift-installer/image_cache"
+mkdir -p "$CACHE_DIR"
+
 while [[ $# -gt 0 ]]; do
     case "$1" in
         -b|--branch)
@@ -35,12 +38,11 @@ else
     IMAGE_NAME="rhcos-$BRANCH"
 fi
 
-LOCAL_IMAGE_FILE=rhcos-latest.qcow2
 RHCOS_VERSIONS_FILE="$(mktemp)"
 curl --silent -o "$RHCOS_VERSIONS_FILE" "https://raw.githubusercontent.com/openshift/installer/${REAL_BRANCH_NAME}/data/data/rhcos.json"
 
-IMAGE_URL="$(jq --raw-output '.baseURI + .images.openstack.path' $RHCOS_VERSIONS_FILE)"
 IMAGE_SHA="$(jq --raw-output '.images.openstack."uncompressed-sha256"' "$RHCOS_VERSIONS_FILE")"
+IMAGE_URL="$(jq --raw-output '.baseURI + .images.openstack.path + "?sha256=" + .images.openstack."uncompressed-sha256"' "$RHCOS_VERSIONS_FILE")"
 IMAGE_VERSION="$(jq --raw-output '."ostree-version"' "$RHCOS_VERSIONS_FILE")"
 
 if openstack image show -c properties -f json "$IMAGE_NAME" | grep -q "$IMAGE_VERSION"; then
@@ -48,18 +50,24 @@ if openstack image show -c properties -f json "$IMAGE_NAME" | grep -q "$IMAGE_VE
     exit
 fi
 
-echo "Downloading RHCOS image from:"
-echo "$IMAGE_URL"
+LOCAL_IMAGE_FILE="${CACHE_DIR}/$(echo -n "$IMAGE_URL" | md5sum | cut -d ' ' -f1)"
 
-if [[ "$IMAGE_URL" == *.gz ]]; then
-    curl --insecure --compressed -L -o ${LOCAL_IMAGE_FILE}.gz "$IMAGE_URL"
-    gunzip -f ${LOCAL_IMAGE_FILE}.gz
+if [ -f "$LOCAL_IMAGE_FILE" ]; then
+	echo "Found cached image $LOCAL_IMAGE_FILE"
 else
-    curl --insecure --compressed -L -o ${LOCAL_IMAGE_FILE} "$IMAGE_URL"
+	echo "Downloading RHCOS image from:"
+	echo "$IMAGE_URL"
+
+	if [[ "$IMAGE_URL" == *.gz ]]; then
+	    curl --insecure --compressed -L -o "${LOCAL_IMAGE_FILE}.gz" "$IMAGE_URL"
+	    gunzip -f "${LOCAL_IMAGE_FILE}.gz"
+	else
+	    curl --insecure --compressed -L -o "$LOCAL_IMAGE_FILE" "$IMAGE_URL"
+	fi
 fi
 
 echo "Verifying image..."
-if ! shasum -qa256 -c <(echo -n "${IMAGE_SHA}  ${LOCAL_IMAGE_FILE}"); then
+if ! sha256sum --quiet -c <(echo -n "${IMAGE_SHA}  ${LOCAL_IMAGE_FILE}"); then
     echo 'Image is corrupted. Exiting...'
     exit 1
 fi
