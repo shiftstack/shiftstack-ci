@@ -42,7 +42,7 @@ RHCOS_VERSIONS_FILE="$(mktemp)"
 curl --silent -o "$RHCOS_VERSIONS_FILE" "https://raw.githubusercontent.com/openshift/installer/${REAL_BRANCH_NAME}/data/data/rhcos.json"
 
 IMAGE_SHA="$(jq --raw-output '.images.openstack."uncompressed-sha256"' "$RHCOS_VERSIONS_FILE")"
-IMAGE_URL="$(jq --raw-output '.baseURI + .images.openstack.path + "?sha256=" + .images.openstack."uncompressed-sha256"' "$RHCOS_VERSIONS_FILE")"
+IMAGE_URL="$(jq --raw-output '.baseURI + .images.openstack.path' "$RHCOS_VERSIONS_FILE")"
 IMAGE_VERSION="$(jq --raw-output '."ostree-version"' "$RHCOS_VERSIONS_FILE")"
 
 if openstack image show -c properties -f json "$IMAGE_NAME" | grep -q "$IMAGE_VERSION"; then
@@ -50,7 +50,7 @@ if openstack image show -c properties -f json "$IMAGE_NAME" | grep -q "$IMAGE_VE
     exit
 fi
 
-LOCAL_IMAGE_FILE="${CACHE_DIR}/$(echo -n "$IMAGE_URL" | md5sum | cut -d ' ' -f1)"
+LOCAL_IMAGE_FILE="${CACHE_DIR}/$(echo -n "${IMAGE_URL}?sha256=${IMAGE_SHA}" | md5sum | cut -d ' ' -f1)"
 
 if [ -f "$LOCAL_IMAGE_FILE" ]; then
 	echo "Found cached image $LOCAL_IMAGE_FILE"
