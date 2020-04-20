@@ -15,5 +15,5 @@ fi
 
 for cluster_id in $(./list-clusters -ls); do
 	echo Destroying "$cluster_id"
-	time ./destroy_cluster.sh -i "$cluster_id"
+	time ./destroy_cluster.sh -i "$cluster_id" &
 done
