@@ -51,8 +51,14 @@ while getopts lash o; do
 done
 
 for network in $(openstack network list -c Name -f value); do
-	if [[ $network = *-*-openshift ]]; then
-		CLUSTER_ID="${network/-openshift/}"
+	if [[ $network = *-*-openshift ]] || [[ $network = *-*-network ]]; then
+		declare CLUSTER_ID="$network"
+
+		# IPI
+		CLUSTER_ID="${CLUSTER_ID%-openshift}"
+		# UPI
+		CLUSTER_ID="${CLUSTER_ID%-network}"
+
 		case "$filter" in
 			'active')
 				CREATION_TIME=$(openstack network show "$network" -c created_at -f value)
