@@ -13,7 +13,20 @@ if ! openstack security group show '8a1289c1-0584-453a-935c-9a3df67aef32' > /dev
     exit
 fi
 
+declare concurrently=false
+
+while getopts c opt; do
+	case "$opt" in
+		c) concurrently=true ;;
+		*) >&2 echo "Unknown flag: $opt"; exit 2 ;;
+	esac
+done
+
 for cluster_id in $(./list-clusters -ls); do
 	echo Destroying "$cluster_id"
-	time ./destroy_cluster.sh -i "$cluster_id" &
+	if [ "$concurrently" = true ]; then
+		time ./destroy_cluster.sh -i "$cluster_id" &
+	else
+		time ./destroy_cluster.sh -i "$cluster_id"
+	fi
 done
