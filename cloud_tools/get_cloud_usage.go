@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 	"text/tabwriter"
+	"time"
 )
 
 func usage() {
@@ -61,9 +62,9 @@ var cmd = &cobra.Command{
 
 			var volumeUsage blockstorageQuotasets.QuotaUsageSet
 			if volumes || volumestorage || flagCount != 1 {
-				volumeUsage = get_volume_usage(opts)
+				volumeUsage = getVolumeUsage(opts)
 			}
-			computeLimits := get_compute_limits(opts)
+			computeLimits := getComputeLimits(opts)
 
 
 
@@ -83,6 +84,66 @@ var cmd = &cobra.Command{
 				} else if ram {
 					fmt.Println(computeLimits.TotalRAMUsed)
 				}
+			} else if timeseries {
+				timestamp := time.Now().Unix()
+				if cores || flagCount == 0 {
+					fmt.Println(
+						fmt.Sprintf("%d,%s,%.02f,%d,%d",
+							timestamp,
+							"Cores",
+							float32(computeLimits.TotalCoresUsed)/float32(computeLimits.MaxTotalCores)*100,
+							computeLimits.MaxTotalCores, computeLimits.TotalCoresUsed))
+
+				}
+				if instances || flagCount == 0 {
+					fmt.Println(
+						fmt.Sprintf("%d,%s,%.02f,%d,%d",
+							timestamp,
+							"Instances",
+							float32(computeLimits.TotalInstancesUsed)/float32(computeLimits.MaxTotalInstances)*100,
+							computeLimits.MaxTotalInstances, computeLimits.TotalInstancesUsed))
+				}
+				if securitygroups || flagCount == 0 {
+					fmt.Println(
+						fmt.Sprintf("%d,%s,%.02f,%d,%d",
+							timestamp,
+							"SecurityGroups",
+							float32(computeLimits.TotalSecurityGroupsUsed)/float32(computeLimits.MaxSecurityGroups)*100,
+							computeLimits.MaxSecurityGroups, computeLimits.TotalSecurityGroupsUsed))
+				}
+				if volumes || flagCount == 0 {
+					fmt.Println(
+						fmt.Sprintf("%d,%s,%.02f,%d,%d",
+							timestamp,
+							"Volumes",
+							float32(volumeUsage.Volumes.InUse)/float32(volumeUsage.Volumes.Limit)*100,
+							volumeUsage.Volumes.Limit, volumeUsage.Volumes.InUse))
+				}
+				if volumestorage || flagCount == 0 {
+					fmt.Println(
+						fmt.Sprintf("%d,%s,%.02f,%d,%d",
+							timestamp,
+							"Volume(GB)",
+							float32(volumeUsage.Gigabytes.InUse)/float32(volumeUsage.Gigabytes.Limit)*100,
+							volumeUsage.Gigabytes.Limit, volumeUsage.Gigabytes.InUse))
+				}
+				if servergroups || flagCount == 0 {
+					fmt.Println(
+						fmt.Sprintf("%d,%s,%.02f,%d,%d",
+							timestamp,
+							"ServerGroups",
+							float32(computeLimits.TotalServerGroupsUsed)/float32(computeLimits.MaxServerGroups)*100,
+							computeLimits.MaxServerGroups, computeLimits.TotalServerGroupsUsed))
+				}
+				if ram || flagCount == 0 {
+					fmt.Println(
+						fmt.Sprintf("%d,%s,%.02f,%d,%d",
+							timestamp,
+							"RAM",
+							float32(computeLimits.TotalRAMUsed)/float32(computeLimits.MaxTotalRAMSize)*100,
+							computeLimits.MaxTotalRAMSize, computeLimits.TotalRAMUsed))
+				}
+
 			} else {
 				w := new(tabwriter.Writer)
 				w.Init(os.Stdout, 8, 8, 1, ' ', 0)
@@ -144,7 +205,7 @@ var cmd = &cobra.Command{
 	}
 
 
-func get_volume_usage(opts *clientconfig.ClientOpts) (volumeUsage blockstorageQuotasets.QuotaUsageSet) {
+func getVolumeUsage(opts *clientconfig.ClientOpts) (volumeUsage blockstorageQuotasets.QuotaUsageSet) {
 	cloud, err := clientconfig.GetCloudFromYAML(opts)
 	if err != nil {
 		panic(err)
@@ -163,7 +224,7 @@ func get_volume_usage(opts *clientconfig.ClientOpts) (volumeUsage blockstorageQu
 }
 
 
-func get_compute_limits(opts *clientconfig.ClientOpts) (instances limits.Absolute) {
+func getComputeLimits(opts *clientconfig.ClientOpts) (instances limits.Absolute) {
 	computeClient, err := clientconfig.NewServiceClient("compute", opts)
 	if err != nil {
 		panic(err)
@@ -177,11 +238,12 @@ func get_compute_limits(opts *clientconfig.ClientOpts) (instances limits.Absolut
 }
 
 
-	var cores, ram, instances, securitygroups, volumes, servergroups, volumestorage, usageonly bool
+	var cores, ram, instances, securitygroups, volumes, servergroups, volumestorage, usageonly, timeseries bool
 	var cloudName string
 
 func main(){
 	cmd.PersistentFlags().BoolVarP(&usageonly, "usage_only", "u", false, "List only usage not quota")
+	cmd.PersistentFlags().BoolVarP(&timeseries, "time_series", "t", false, "report one resource per  line with time stamp: unixtimestamp, resource, Utilization(%), max, used")
 	cmd.PersistentFlags().BoolVarP(&cores, "cores", "c", false,"Get cores usage")
 	cmd.PersistentFlags().BoolVarP(&instances, "instances", "i", false,"Get instances usage")
 	cmd.PersistentFlags().BoolVarP(&securitygroups, "securitygroups", "y", false,"Get security groups usage")
