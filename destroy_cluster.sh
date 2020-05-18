@@ -80,6 +80,7 @@ if [[ $FORCE == true ]]; then
     openstack security group delete $INFRA_ID-master
     openstack security group delete $INFRA_ID-worker
 
+    openstack server group delete $INFRA_ID-master
 
     for c in $(openstack container list -f value); do
         echo $c
