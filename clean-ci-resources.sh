@@ -8,10 +8,17 @@ if [ ! -r "$CONFIG" ]; then
 fi
 source ./${CONFIG}
 
-if ! openstack security group show '8a1289c1-0584-453a-935c-9a3df67aef32' > /dev/null 2>&1;  then
-    echo "Refusing to run on anything else than the CI tenant"
-    exit
-fi
+case "$(openstack security group show -f value -c id project-identifier)" in
+	8a1289c1-0584-453a-935c-9a3df67aef32)
+		>&2 echo 'Operating on MOC'
+		;;
+	72b7dc2c-5698-4514-a142-90b91c68006c)
+		>&2 echo 'Operating on VEXXHOST'
+		;;
+	*)
+		>&2 echo "Refusing to run on anything else than the CI tenant"
+		exit 1
+esac
 
 declare concurrently=false
 
