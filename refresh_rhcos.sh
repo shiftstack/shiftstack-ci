@@ -46,7 +46,7 @@ IMAGE_URL="$(jq --raw-output '.baseURI + .images.openstack.path' "$RHCOS_VERSION
 IMAGE_VERSION="$(jq --raw-output '."ostree-version"' "$RHCOS_VERSIONS_FILE")"
 
 current_image_version="$(mktemp)"
-openstack image show -c properties -f json "$IMAGE_NAME" > "$current_image_version"
+openstack image show -c properties -f json "$IMAGE_NAME" > "$current_image_version" || true
 
 if grep -q "$IMAGE_VERSION" "$current_image_version"; then
     echo "RHCOS image '${IMAGE_NAME}' already at the latest version '$IMAGE_VERSION'"
