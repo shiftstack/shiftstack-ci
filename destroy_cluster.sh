@@ -68,8 +68,9 @@ if [[ $FORCE == true ]]; then
 
     # delete interfaces from the router
     PORT=$(openstack router show $INFRA_ID-external-router -c interfaces_info -f value | cut -d '"' -f 12)
-    openstack router remove port $INFRA_ID-external-router $PORT
-
+    if [ -n "$PORT" ]; then
+	    openstack router remove port $INFRA_ID-external-router $PORT
+    fi
 
     openstack router unset --external-gateway $INFRA_ID-external-router
     openstack router delete $INFRA_ID-external-router
