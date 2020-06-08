@@ -74,7 +74,11 @@ if [[ $FORCE == true ]]; then
     openstack router unset --external-gateway $INFRA_ID-external-router
     openstack router delete $INFRA_ID-external-router
 
+    # IPI network
     openstack network delete $INFRA_ID-openshift
+
+    # UPI network
+    openstack network delete $INFRA_ID-network
 
     openstack security group delete $INFRA_ID-api
     openstack security group delete $INFRA_ID-master
