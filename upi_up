@@ -1,0 +1,251 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+set -x
+
+declare -r \
+	installer="${OPENSHIFT_INSTALLER:-openshift-install}" \
+	os_cloud="${OS_CLOUD}" \
+	RHCOS_IMAGE='rhcos-4.6' \
+	external_network="${1:-}"
+
+declare \
+	api_fip_id='' \
+	ingress_fip_id='' \
+	bootstrap_ignition_image_id=''
+
+cleanup() {
+	if [ -n "$bootstrap_ignition_image_id" ] || [ -n "$api_fip_id" ] || [ -n "$ingress_fip_id" ]; then
+		echo 'To cleanup resources:'
+		if [ -n "$bootstrap_ignition_image_id" ]; then
+			echo "openstack image delete ${bootstrap_ignition_image_id}"
+		fi
+		if [ -n "$api_fip_id" ]; then
+			echo "openstack floating ip delete ${api_fip_id}"
+		fi
+		if [ -n "$ingress_fip_id" ]; then
+			echo "openstack floating ip delete ${ingress_fip_id}"
+		fi
+	fi
+}
+
+trap cleanup EXIT
+
+if [[ "$external_network" == "" ]]; then
+	>&2 echo "Pass the external network name or ID as an argument."
+	exit 1
+fi
+
+if ! [ -x "$installer" ]; then
+	>&2 echo "Installer executable not found in '$installer'; exiting."
+	exit 2
+fi
+
+declare -a playbooks=(common.yaml security-groups.yaml network.yaml bootstrap.yaml control-plane.yaml)
+
+for playbook in "${playbooks[@]}"; do
+	if ! [ -f "$playbook" ]; then
+		>&2 echo "Playbook '${playbook}' not found; exiting."
+		exit 2
+	fi
+done
+
+if [ -f install-config.yaml ]; then
+	>&2 echo 'install-config.yaml already exists; exiting.'
+	exit 2
+fi
+
+if [ -f inventory.yaml ]; then
+	>&2 echo 'inventory.yaml already exists; exiting.'
+	exit 2
+fi
+
+api_fip_id="$(openstack floating ip create -f value -c id --description 'UPI API FIP' "$external_network")"
+api_fip_ip="$(openstack floating ip show -f value -c floating_ip_address "$api_fip_id")"
+ingress_fip_id="$(openstack floating ip create -f value -c id --description 'UPI infress FIP' "$external_network")"
+ingress_fip_ip="$(openstack floating ip show -f value -c floating_ip_address "$ingress_fip_id")"
+
+declare -r \
+	cluster_name="${USER:0:7}-upi-$(shuf -i 10-99 -n 1)"
+	ip_class="$(shuf -i 1-250 -n 1)" \
+	ssh_pubkey="$(ssh-add -L)" \
+	pull_secret="$(pass show redhat/pull-secret)"
+cat > install-config.yaml <<EOF
+apiVersion: v1
+baseDomain: jkfd.de
+compute:
+- architecture: amd64
+  hyperthreading: Enabled
+  name: worker
+  platform: {}
+  replicas: 0
+controlPlane:
+  architecture: amd64
+  hyperthreading: Enabled
+  name: master
+  platform: {}
+  replicas: 3
+metadata:
+  creationTimestamp: null
+  name: '${cluster_name}'
+networking:
+  clusterNetwork:
+  - cidr: 10.128.0.0/14
+    hostPrefix: 23
+  machineNetwork:
+  - cidr: 10.${ip_class}.0.0/16
+  networkType: OpenShiftSDN
+  serviceNetwork:
+  - 172.30.0.0/16
+platform:
+  openstack:
+    apiVIP: 10.${ip_class}.0.5
+    cloud: '${os_cloud}'
+    computeFlavor: ocp.min.master
+    externalDNS: null
+    externalNetwork: provider_net_shared_3
+    ingressVIP: 10.${ip_class}.0.7
+    lbFloatingIP: "${api_fip_ip}"
+publish: External
+pullSecret: '${pull_secret}'
+sshKey: '${ssh_pubkey}'
+EOF
+
+
+cat > inventory.yaml <<EOF
+all:
+  hosts:
+    localhost:
+      ansible_connection: local
+      ansible_python_interpreter: "{{ansible_playbook_python}}"
+
+      os_subnet_range: '10.${ip_class}.0.0/16'
+      os_flavor_master: 'ocp.min.master'
+      os_flavor_worker: 'ocp.min.worker'
+      os_image_rhcos: '${RHCOS_IMAGE}'
+      os_external_network: '${external_network}'
+      os_api_fip: '${api_fip_ip}'
+      os_ingress_fip: '${ingress_fip_ip}'
+      svc_subnet_range: '172.30.0.0/16'
+      os_svc_network_range: '172.30.0.0/15'
+      cluster_network_cidrs: '10.128.0.0/14'
+      host_prefix: '23'
+      os_networking_type: 'OpenshiftSDN'
+      os_cp_nodes_number: 3
+      os_compute_nodes_number: 3
+EOF
+
+$installer create manifests
+
+# Remove the MachineSet
+rm -f openshift/99_openshift-cluster-api_master-machines-*.yaml openshift/99_openshift-cluster-api_worker-machineset-*.yaml
+
+# Make control-plane nodes unschedulable
+cat <<EOF | python -
+import yaml
+path = "manifests/cluster-scheduler-02-config.yml"
+data = yaml.safe_load(open(path))
+data["spec"]["mastersSchedulable"] = False
+open(path, "w").write(yaml.dump(data, default_flow_style=False))
+EOF
+
+# Create the Ignition files
+$installer create ignition-configs
+
+declare -r INFRA_ID=$(jq -r .infraID metadata.json)
+export INFRA_ID
+echo "INFRA_ID: ${INFRA_ID}"
+
+# Add hostname and OS_CACERT to the bootstrap ignition
+cat <<EOF | python -
+import base64
+import json
+import os
+
+with open('bootstrap.ign', 'r') as f:
+    ignition = json.load(f)
+
+storage = ignition.get('storage', {});
+files = storage.get('files', []);
+
+infra_id = os.environ.get('INFRA_ID', 'openshift').encode()
+hostname_b64 = base64.standard_b64encode(infra_id + b'-bootstrap\n').decode().strip()
+files.append(
+{
+    'path': '/etc/hostname',
+    'mode': 420,
+    'contents': {
+        'source': 'data:text/plain;charset=utf-8;base64,' + hostname_b64
+    },
+    'filesystem': 'root',
+})
+
+ca_cert_path = os.environ.get('OS_CACERT', '')
+if ca_cert_path:
+    with open(ca_cert_path, 'r') as f:
+        ca_cert = f.read().encode()
+        ca_cert_b64 = base64.standard_b64encode(ca_cert).decode().strip()
+
+    files.append(
+    {
+        'path': '/opt/openshift/tls/cloud-ca-cert.pem',
+        'mode': 420,
+        'contents': {
+            'source': 'data:text/plain;charset=utf-8;base64,' + ca_cert_b64
+        },
+        'filesystem': 'root',
+    })
+
+storage['files'] = files;
+ignition['storage'] = storage
+
+with open('bootstrap.ign', 'w') as f:
+    json.dump(ignition, f)
+EOF
+
+bootstrap_ignition_image_id="$(openstack image create -f value -c id --disk-format=raw --container-format=bare --file bootstrap.ign "$INFRA_ID-bootstrap-ignition")"
+
+# Create the bootstrap ignition shim
+declare bootstrap_ignition_url
+bootstrap_ignition_url="$(openstack catalog show image -f json | jq -r '.endpoints | map(select(.interface == "public"))[0].url')/v2/images/${bootstrap_ignition_image_id}/file"
+cat > "${INFRA_ID}-bootstrap-ignition.json" <<EOF
+{
+  "ignition": {
+    "config": {
+      "merge": [
+        {
+          "source": "${bootstrap_ignition_url}",
+          "verification": {},
+          "httpHeaders": [{
+            "name": "X-Auth-Token",
+            "value": "$(openstack token issue -c id -f value)"
+          }]
+        }
+      ]
+    },
+    "version": "3.1.0"
+  }
+}
+EOF
+
+# Add hostname in master ignition
+for index in $(seq 0 2); do
+    MASTER_HOSTNAME="$INFRA_ID-master-$index\n"
+    python -c "import base64, json, sys;
+ignition = json.load(sys.stdin);
+storage = ignition.get('storage', {});
+files = storage.get('files', []);
+files.append({'path': '/etc/hostname', 'mode': 420, 'contents': {'source': 'data:text/plain;charset=utf-8;base64,' + base64.standard_b64encode(b'$MASTER_HOSTNAME').decode().strip()}});
+storage['files'] = files;
+ignition['storage'] = storage
+json.dump(ignition, sys.stdout)" <master.ign >"$INFRA_ID-master-$index-ignition.json"
+done
+
+ansible-playbook -i inventory.yaml security-groups.yaml network.yaml bootstrap.yaml control-plane.yaml
+
+$installer wait-for bootstrap-complete
+
+ansible-playbook -i inventory.yaml down-bootstrap.yaml compute-nodes.yaml
+
+echo 'Now approve the workers CSR'
+echo 'https://github.com/openshift/installer/blob/master/docs/user/openstack/install_upi.md#approve-the-worker-csrs'
