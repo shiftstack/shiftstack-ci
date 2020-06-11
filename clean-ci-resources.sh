@@ -37,3 +37,8 @@ for cluster_id in $(./list-clusters -ls); do
 		time ./destroy_cluster.sh -i "$cluster_id"
 	fi
 done
+
+# Clean leftover containers
+openstack container list -f value -c Name |\
+        grep -vf <(./list-clusters -a) |\
+        xargs --no-run-if-empty openstack container delete -r
