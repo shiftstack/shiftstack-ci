@@ -1,0 +1,111 @@
+= ShiftStack CI
+
+Each OpenShift on OpenStack continuous integration test job runs on one of two clouds:
+
+* *MOC*: massopen.cloud running OSP 13
+* *Vexxhost*: A private cloud offering likely running OpenStack Ussuri
+
+Currently, we have three different test suites:
+
+* *Parallel*: The Conformance test suite, executed parallelizing tests
+* *Serial*: The Conformance test suite, executed one job at a time
+* *Early*: Smoke tests
+
+Currently, our jobs deploy on clouds with equivalent characteristics:
+
+* Control Plane (and bootstrap) nodes boot from a 25GB high-performance Cinder volume
+* Control Plane: 3 VMs with:
+** 8 vCPUs
+** 16 GB RAM
+** 25 GB disk
+* Compute Nodes: 3 VMs with:
+** 8 vCPUs
+** 16 GB RAM
+** 25 GB disk
+* OpenShift SDN
+* Installer-provisioned network
+* FIP-powered connectivity (we use AWS Route53 as the external DNS)
+* The OpenStack cloud is using a valid HTTPS certificate (no cacert in clouds.yaml)
+* Swift as a backend for cluster-image-registry-operator
+
+.ShiftStack periodics
+|===
+|Installer |Branch |Test suite |Job name |Cloud (see top)
+
+|IPI
+|4.6
+|Parallel
+|https://testgrid.k8s.io/redhat-openshift-ocp-release-4.6-informing#release-openshift-ocp-installer-e2e-openstack-4.6[release-openshift-ocp-installer-e2e-openstack-4.6]
+|MOC
+
+|IPI
+|4.6
+|Serial
+|https://testgrid.k8s.io/redhat-openshift-ocp-release-4.6-informing#release-openshift-ocp-installer-e2e-openstack-serial-4.6[release-openshift-ocp-installer-e2e-openstack-serial-4.6]
+|MOC
+
+|IPI
+|4.5
+|Parallel
+|https://testgrid.k8s.io/redhat-openshift-ocp-release-4.5-informing#release-openshift-ocp-installer-e2e-openstack-4.5[release-openshift-ocp-installer-e2e-openstack-4.5]
+|Vexxhost
+
+|IPI
+|4.5
+|Serial
+|https://testgrid.k8s.io/redhat-openshift-ocp-release-4.5-informing#release-openshift-ocp-installer-e2e-openstack-serial-4.5[release-openshift-ocp-installer-e2e-openstack-serial-4.5]
+|Vexxhost
+
+|IPI
+|4.4
+|Parallel
+|https://testgrid.k8s.io/redhat-openshift-ocp-release-4.4-informing#release-openshift-ocp-installer-e2e-openstack-4.4[release-openshift-ocp-installer-e2e-openstack-4.4]
+|Vexxhost
+
+|IPI
+|4.4
+|Serial
+|https://testgrid.k8s.io/redhat-openshift-ocp-release-4.4-informing#release-openshift-ocp-installer-e2e-openstack-serial-4.4[release-openshift-ocp-installer-e2e-openstack-serial-4.4]
+|Vexxhost
+
+|IPI
+|4.3
+|Parallel
+|https://testgrid.k8s.io/redhat-openshift-ocp-release-4.3-informing#release-openshift-ocp-installer-e2e-openstack-4.3[release-openshift-ocp-installer-e2e-openstack-4.3]
+|MOC
+
+|IPI
+|4.3
+|Serial
+|https://testgrid.k8s.io/redhat-openshift-ocp-release-4.3-informing#release-openshift-ocp-installer-e2e-openstack-serial-4.3[release-openshift-ocp-installer-e2e-openstack-serial-4.3]
+|MOC
+
+|IPI
+|4.2
+|Parallel
+|https://testgrid.k8s.io/redhat-openshift-ocp-release-4.2-informing#release-openshift-ocp-installer-e2e-openstack-4.2[release-openshift-ocp-installer-e2e-openstack-4.2]
+|MOC
+
+|IPI
+|4.2
+|Serial
+|https://testgrid.k8s.io/redhat-openshift-ocp-release-4.2-informing#release-openshift-ocp-installer-e2e-openstack-serial-4.2[release-openshift-ocp-installer-e2e-openstack-serial-4.2]
+|MOC
+|===
+
+.ShiftStack presubmits
+|===
+|Installer |Branch |Test suite |Job name |Cloud (see top)
+
+|IPI
+|All
+|Early
+|e2e-openstack
+|MOC
+
+|UPI
+|4.6, 4.5, 4.4
+|Early
+|e2e-openstack-upi
+|MOC
+|===
