@@ -36,13 +36,13 @@ Currently, our jobs deploy on clouds with equivalent characteristics:
 |4.6
 |Parallel
 |https://testgrid.k8s.io/redhat-openshift-ocp-release-4.6-informing#release-openshift-ocp-installer-e2e-openstack-4.6[release-openshift-ocp-installer-e2e-openstack-4.6]
-|MOC
+|Vexxhost
 
 |IPI
 |4.6
 |Serial
 |https://testgrid.k8s.io/redhat-openshift-ocp-release-4.6-informing#release-openshift-ocp-installer-e2e-openstack-serial-4.6[release-openshift-ocp-installer-e2e-openstack-serial-4.6]
-|MOC
+|Vexxhost
 
 |IPI
 |4.5
@@ -60,13 +60,13 @@ Currently, our jobs deploy on clouds with equivalent characteristics:
 |4.4
 |Parallel
 |https://testgrid.k8s.io/redhat-openshift-ocp-release-4.4-informing#release-openshift-ocp-installer-e2e-openstack-4.4[release-openshift-ocp-installer-e2e-openstack-4.4]
-|Vexxhost
+|MOC
 
 |IPI
 |4.4
 |Serial
 |https://testgrid.k8s.io/redhat-openshift-ocp-release-4.4-informing#release-openshift-ocp-installer-e2e-openstack-serial-4.4[release-openshift-ocp-installer-e2e-openstack-serial-4.4]
-|Vexxhost
+|MOC
 
 |IPI
 |4.3
