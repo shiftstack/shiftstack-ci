@@ -1,0 +1,23 @@
+eval "$(go env)"
+
+export OS_CLOUD=""
+export CLUSTER_NAME=""
+export MASTER_COUNT=3
+export WORKER_COUNT=1
+export OPENSHIFT_INSTALL_DATA="$GOPATH/src/github.com/openshift/installer/data/data"
+export OPENSTACK_FLAVOR=ocp-master
+# If not defined, workers use the same flavor as controllers
+export OPENSTACK_WORKER_FLAVOR=ci.w1.large
+
+export BASE_DOMAIN=shiftstack.com
+export OPENSTACK_EXTERNAL_NETWORK=provider_net_shared_3
+# Get your own pull secret from try.openshift.com
+export PULL_SECRET='{"auths": { "quay.io": { "auth": "xxx", "email": "" }}}'
+export SSH_PUB_KEY="`cat $HOME/.ssh/id_rsa.pub`"
+
+# The installer automatically uploads the RHCOS image to glance.
+# While this allows to ensure the right image is used, this also means you'll
+# need to transfer 2GB both ways when deploying a cluster which may not be the
+# most convenient for development. You can set the following variable to point
+# to an existing image to skip this step:
+# export OPENSHIFT_INSTALL_OS_IMAGE_OVERRIDE="rhcos-4.6"
