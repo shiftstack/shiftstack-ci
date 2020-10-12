@@ -77,15 +77,13 @@ apiVersion: v1
 baseDomain: ${BASE_DOMAIN}
 clusterID:  ${CLUSTER_ID}
 compute:
-- hyperthreading: Enabled
-  name: worker
+- name: worker
   platform:
     openstack:
       type: ${OPENSTACK_WORKER_FLAVOR}
       ${WORKER_ROOT_VOLUME}
   replicas: ${WORKER_COUNT}
 controlPlane:
-  hyperthreading: Enabled
   name: master
   platform:
     openstack:
