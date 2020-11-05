@@ -1,0 +1,10 @@
+{
+	"auths": {
+		"registry.svc.ci.openshift.org": {
+			"auth": "<data>"
+		},
+		"quay.io": {
+			"auth": "<data>"
+		}
+	}
+}
