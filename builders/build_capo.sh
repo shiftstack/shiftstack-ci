@@ -56,7 +56,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [ -z "$USERNAME" ]; then
-    echo "No quay username provided, exiting ..."
+    echo "-u/--username was not provided, exiting ..."
     exit 1
 fi
 
@@ -71,6 +71,7 @@ CAPO_IMAGE="quay.io/$USERNAME/capo:$TAG"
 
 echo "Start building CAPO image $CAPO_IMAGE"
 
+go get sigs.k8s.io/cluster-api-provider-openstack
 pushd $GOPATH/src/sigs.k8s.io/cluster-api-provider-openstack
 podman build --no-cache -t $CAPO_IMAGE .
 podman push $CAPO_IMAGE
