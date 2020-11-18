@@ -14,6 +14,93 @@ set -x
 
 declare -r installer="${OPENSHIFT_INSTALLER:-$GOPATH/src/github.com/openshift/installer/bin/openshift-install}"
 
+declare psi_public='no'
+declare -r \
+	redhat_api_network=c281fd91-040b-408e-a375-609b1bef3e33 \
+	psi_public_external_network=82b71693-a5ad-4d89-9c7d-ddfa9cc798f0 \
+
+if openstack network show "$redhat_api_network" >/dev/null 2>&1; then
+	echo 'Installing on PSI-public; using bring-your-own-network.'
+	psi_public='yes'
+fi
+
+teardown_psi_public() {
+	declare -r \
+		infra_id="$1" \
+		name="byon-${1}"
+
+	openstack port delete "$name"
+	openstack router delete "${name}-rh-api"
+
+	openstack router unset --route destination="10.5.204.1/32,gateway=10.0.128.2" "$name"
+	openstack router unset --route destination="10.5.201.114/32,gateway=10.0.128.2" "$name"
+	openstack router unset --route destination="10.5.201.75/32,gateway=10.0.128.2" "$name"
+
+	openstack router remove subnet "$name" "$name"
+	openstack router delete "$name"
+
+	openstack subnet delete "$name"
+	openstack network delete "$name"
+}
+
+prepare_psi_public() {
+	declare -r \
+		infra_id="$1" \
+		name="byon-${1}" \
+		external_network="${2}"
+
+	declare \
+		network_id='' \
+		subnet_id='' \
+		router_id='' \
+		port_id='' \
+		api_router_id=''
+
+	network_id="$(openstack network create -f value -c id \
+		--tag "openshiftClusterID=${infra_id}" \
+		$name)"
+
+	subnet_id="$(openstack subnet create -f value -c id \
+		--tag "openshiftClusterID=${infra_id}" \
+		--subnet-range 10.0.128.0/17 \
+		--allocation-pool 'start=10.0.128.10,end=10.0.254.254' \
+		--dns-nameserver 10.5.201.114 \
+		--dns-nameserver 10.5.201.75 \
+		--network "$network_id" \
+		$name)"
+
+	router_id="$(openstack router create -f value -c id \
+		--tag "openshiftClusterID=${infra_id}" \
+		"$name")"
+
+	openstack router add subnet "$router_id" "$subnet_id"
+	openstack router set --external-gateway "$external_network" "$router_id"
+
+	# Now we establish connectivity to OpenStack's API, through the network 'redhat-api'
+
+	port_id="$(openstack port create -f value -c id \
+		--tag "openshiftClusterID=${infra_id}" \
+		--network "$network_id" \
+		--fixed-ip "subnet=${subnet_id},ip-address=10.0.128.2" \
+		"$name")"
+
+	openstack router set --route destination="10.5.204.1/32,gateway=10.0.128.2" "$router_id"
+	openstack router set --route destination="10.5.201.114/32,gateway=10.0.128.2" "$router_id"
+	openstack router set --route destination="10.5.201.75/32,gateway=10.0.128.2" "$router_id"
+
+	api_router_id="$(openstack router create -f value -c id \
+		--tag "openshiftClusterID=${infra_id}" \
+		"$name-rh-api")"
+
+	openstack router set --external-gateway "$redhat_api_network" "$api_router_id"
+	printf "%s" "$subnet_id"
+}
+
+declare MACHINES_SUBNET=''
+if [[ $psi_public == 'yes' ]]; then
+	MACHINES_SUBNET="$(prepare_psi_public "$CLUSTER_NAME" "$psi_public_external_network")"
+fi
+
 # check whether we have a free floating IP
 FLOATING_IP=$(openstack floating ip list --status DOWN --network $OPENSTACK_EXTERNAL_NETWORK --long --format value -c "Floating IP Address" -c Description | sed 's/ .*//g')
 FLOATING_IP=$(echo $FLOATING_IP | cut -d ' ' -f1)
@@ -103,6 +190,7 @@ networking:
   - 172.30.0.0/16
 platform:
   openstack:
+    machinesSubnet:   '${MACHINES_SUBNET}'
     cloud:            ${OS_CLOUD}
     externalNetwork:  ${OPENSTACK_EXTERNAL_NETWORK}
     computeFlavor:    ${OPENSTACK_FLAVOR}
