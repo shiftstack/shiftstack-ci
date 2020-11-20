@@ -1,5 +1,5 @@
 # ignore other user's cluster configs
-*cluster_config.sh
+/configs/*.sh
 
 # ignore cluster artifacts
 /clusters

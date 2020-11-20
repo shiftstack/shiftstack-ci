@@ -62,6 +62,7 @@ copy of either `cluster_config.sh.moc.example` or `cluster_config.sh.psi.example
 file:
 
 ```shell
+cd configs
 cp cluster_config.sh.example cluster_config.sh
 ```
 

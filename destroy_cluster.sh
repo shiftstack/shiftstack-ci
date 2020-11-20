@@ -5,7 +5,7 @@
 # and filling up our tenant with undeletable resources.
 # In this case call the destroy script with `-f|--force`
 
-CONFIG=${CONFIG:-cluster_config.sh}
+CONFIG=${CONFIG:-./configs/cluster_config.sh}
 if [ ! -r "$CONFIG" ]; then
     echo "Could not find cluster configuration file."
     echo "Make sure $CONFIG file exists in the shiftstack-ci directory and that it is readable"
