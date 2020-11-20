@@ -53,9 +53,8 @@ fi
 
 ARTIFACT_DIR=clusters/${CLUSTER_NAME}
 
-if [ ! -d ${ARTIFACT_DIR} ]; then
-    mkdir -p ${ARTIFACT_DIR}
-fi
+rm -rf ${ARTIFACT_DIR}
+mkdir -p ${ARTIFACT_DIR}
 
 : "${OPENSTACK_WORKER_FLAVOR:=${OPENSTACK_FLAVOR}}"
 
