@@ -13,6 +13,8 @@ if [ ! -r "$CONFIG" ]; then
 fi
 source ./${CONFIG}
 
+ARTIFACT_DIR=clusters/${CLUSTER_NAME}
+
 opts=$(getopt -n "$0"  -o "fi:" --long "force,infra-id:"  -- "$@")
 
 eval set --$opts
@@ -48,9 +50,9 @@ fi
 
 if [[ $FORCE == true ]]; then
     echo Destroying cluster using openstack cli
-    if [ -z "$INFRA_ID" ] && [ -f $CLUSTER_NAME/metadata.json ]; then
+    if [ -z "$INFRA_ID" ] && [ -f $ARTIFACT_DIR/metadata.json ]; then
         # elements created by the cluster are named $CLUSTER_NAME-hash by the installer
-        INFRA_ID=$(jq .infraID $CLUSTER_NAME/metadata.json | sed "s/\"//g")
+        INFRA_ID=$(jq .infraID $ARTIFACT_DIR/metadata.json | sed "s/\"//g")
     fi
 
     if [ -z "$INFRA_ID" ]; then
@@ -101,7 +103,7 @@ if [[ $FORCE == true ]]; then
     fi
 else
     echo Destroying cluster using openshift-install
-    "$installer" --log-level=debug destroy cluster --dir ${TMP_DIR:-$CLUSTER_NAME}
+    "$installer" --log-level=debug destroy cluster --dir ${TMP_DIR:-$ARTIFACT_DIR}
 fi
 
 if [ ! -z "$TMP_DIR" ]; then

@@ -51,8 +51,10 @@ if [ "${ssh_config}" != "${old_ssh_config}" ]; then
   echo "$ssh_config" >>  $HOME/.ssh/config
 fi
 
-if [ ! -d $CLUSTER_NAME ]; then
-    mkdir -p $CLUSTER_NAME
+ARTIFACT_DIR=clusters/${CLUSTER_NAME}
+
+if [ ! -d ${ARTIFACT_DIR} ]; then
+    mkdir -p ${ARTIFACT_DIR}
 fi
 
 : "${OPENSTACK_WORKER_FLAVOR:=${OPENSTACK_FLAVOR}}"
@@ -70,9 +72,9 @@ if [[ ${OPENSTACK_WORKER_VOLUME_TYPE} != "" ]]; then
         type: ${OPENSTACK_WORKER_VOLUME_TYPE}"
 fi
 
-if [ ! -f $CLUSTER_NAME/install-config.yaml ]; then
+if [ ! -f ${ARTIFACT_DIR}/install-config.yaml ]; then
     export CLUSTER_ID=$(uuidgen --random)
-    cat > $CLUSTER_NAME/install-config.yaml << EOF
+    cat > ${ARTIFACT_DIR}/install-config.yaml << EOF
 apiVersion: v1
 baseDomain: ${BASE_DOMAIN}
 clusterID:  ${CLUSTER_ID}
@@ -114,7 +116,7 @@ sshKey: |
 EOF
 fi
 
-"$installer" --log-level=debug ${1:-create} ${2:-cluster} --dir $CLUSTER_NAME
+"$installer" --log-level=debug ${1:-create} ${2:-cluster} --dir ${ARTIFACT_DIR}
 
 # Attaching FIP to ingress port to access the cluster from outside
 # check whether we have a free floating IP
