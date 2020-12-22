@@ -1,0 +1,75 @@
+eval "$(go env)"
+
+export OPENSHIFT_INSTALL_DATA="$GOPATH/src/github.com/openshift/installer/data/data"
+export BASE_DOMAIN=shiftstack.com
+
+# Get your own pull secret from try.openshift.com
+export PULL_SECRET='{"auths": { "quay.io": { "auth": "xxx", "email": "" }}}'
+export SSH_PUB_KEY="`cat $HOME/.ssh/id_rsa.pub`"
+
+export MASTER_COUNT=3
+export WORKER_COUNT=3
+
+##############################################
+# The following settings are platform specific
+##############################################
+
+# Give a different cluster name for each of the platforms you're deploying on
+# since otherwise you'll get conflicts in your /etc/hosts file
+# export CLUSTER_NAME=""
+
+# export OPENSTACK_FLAVOR=m1.xlarge
+# If not defined, workers use the same flavor as controllers
+# export OPENSTACK_WORKER_FLAVOR=m1.large
+
+# Use the following variables to use boot from volume
+# export OPENSTACK_MASTER_VOLUME_TYPE=performance
+# export OPENSTACK_MASTER_VOLUME_SIZE=25
+# export OPENSTACK_WORKER_VOLUME_TYPE=performance
+# export OPENSTACK_WORKER_VOLUME_SIZE=25
+
+# export OPENSTACK_EXTERNAL_NETWORK=external
+
+# The installer automatically uploads the RHCOS image to glance.
+# While this allows to ensure the right image is used, this also means you'll
+# need to transfer 2GB both ways when deploying a cluster which may not be the
+# most convenient for development. You can set the following variable to point
+# to an existing image to skip this step:
+# export OPENSHIFT_INSTALL_OS_IMAGE_OVERRIDE="rhcos-4.6"
+
+
+# For example, if you wanted to configure more than one cloud, you could use
+# something like the following:
+
+# case $OS_CLOUD in
+# 
+#   "moc")
+#       export CLUSTER_NAME="cluster-moc"
+#       export OPENSTACK_FLAVOR=m1.s2.xlarge
+#       export OPENSTACK_WORKER_FLAVOR=m1.s2.large
+#       export OPENSTACK_MASTER_VOLUME_TYPE=performance
+#       export OPENSTACK_MASTER_VOLUME_SIZE=25
+#       export OPENSTACK_WORKER_VOLUME_TYPE=performance
+#       export OPENSTACK_WORKER_VOLUME_SIZE=25
+#       export OPENSTACK_EXTERNAL_NETWORK=external
+#       ;;
+# 
+#   "psi")
+#       export CLUSTER_NAME="cluster-psi"
+#       export OPENSTACK_FLAVOR=ci.m1.xlarge
+#       export OPENSTACK_WORKER_FLAVOR=ci.m1.large
+#       # export OPENSTACK_EXTERNAL_NETWORK=provider_net_shared
+#       export OPENSTACK_EXTERNAL_NETWORK=provider_net_shared_3
+#       ;;
+# 
+#   "psi-public")
+#       export CLUSTER_NAME="cluster-psi-pub"
+#       export OPENSTACK_FLAVOR=ci.s.xl
+#       export OPENSTACK_WORKER_FLAVOR=s.l
+#       export OPENSTACK_EXTERNAL_NETWORK=internet
+#       ;;
+# 
+#   *)
+#     echo -n "Unknown OS_CLOUD=$OS_CLOUD"
+#     ;;
+# esac

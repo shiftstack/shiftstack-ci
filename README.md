@@ -57,9 +57,7 @@ sudo dnf install jq python2-openstackclient origin-clients
 
 ## Cluster Configuration
 
-Depending on the platform on which you want to deploy the cluster, make a
-copy of either `cluster_config.sh.moc.example` or `cluster_config.sh.psi.example`
-file:
+Make a copy of the `cluster_config.sh.example` file:
 
 ```shell
 cp cluster_config.sh.example cluster_config.sh
