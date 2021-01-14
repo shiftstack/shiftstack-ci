@@ -42,3 +42,6 @@ done
 openstack container list -f value -c Name |\
         grep -vf <(./list-clusters -a) |\
         xargs --no-run-if-empty openstack container delete -r
+
+./stale -q volume snapshot | xargs --no-run-if-empty openstack volume snapshot delete
+./stale -q volume | xargs --no-run-if-empty openstack volume delete
