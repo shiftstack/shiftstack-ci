@@ -88,7 +88,7 @@ case $resource_type in
 		list_server ;;
 	port)
 		list_port ;;
-	'network'|'network trunk'|'subnet'|'floating ip'|'security group'|'volume')
+	'network'|'network trunk'|'subnet'|'floating ip'|'security group'|'volume'|'volume snapshot')
 		list_generic "$resource_type" ;;
 	'server group')
 		>&2 printf 'Creation date is not available for %s.' "$resource_type"
