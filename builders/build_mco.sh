@@ -30,7 +30,7 @@ fi
 USERNAME="$1"
 
 DEST_IMAGE="quay.io/$USERNAME/origin-release:$TAG"
-FROM_IMAGE="registry.svc.ci.openshift.org/origin/release:4.2"
+FROM_IMAGE="registry.ci.openshift.org/origin/release:4.2"
 MCO_IMAGE=quay.io/$USERNAME/machine-config-operator:$TAG
 
 pushd $GOPATH/src/github.com/openshift/machine-config-operator

@@ -4,10 +4,10 @@ It's critical to correctly configure the credentials
 here or the building process will fail with permission
 errors.
 
-For registry.svc.ci.openshift.org, you first need to
+For registry.ci.openshift.org, you first need to
 copy the token from https://api.ci.openshift.org/console/catalog
 (top right, "Copy Login Command") and run this command:
-podman login --authfile <authfile> -u <username> -p <token> https://registry.svc.ci.openshift.org
+podman login --authfile <authfile> -u <username> -p <token> https://registry.ci.openshift.org
 The right credentials should be updated in the authfile,
 that will be used to build the images later.
 
