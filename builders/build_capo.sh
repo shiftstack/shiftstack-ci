@@ -68,7 +68,7 @@ if [ ! -f "$OC_REGISTRY_AUTH_FILE" ]; then
 fi
 
 DEST_IMAGE="quay.io/$USERNAME/origin-release:$TAG"
-FROM_IMAGE="registry.svc.ci.openshift.org/origin/release:$RELEASE"
+FROM_IMAGE="registry.ci.openshift.org/origin/release:$RELEASE"
 CAPO_IMAGE="quay.io/$USERNAME/capo:$TAG"
 
 echo "Start building CAPO image $CAPO_IMAGE"
