@@ -7,7 +7,7 @@ It is complementary to
 [ocp-doit](https://github.com/shiftstack-dev-tools/ocp-doit) that focus on
 deploying OCP using a standalone TripleO.
 
-## Pre-Requisits
+## Prerequisites
 
 Access to an OpenStack cloud fitting the [OpenShift on OpenStack
 requirements](https://github.com/openshift/installer/tree/master/docs/user/openstack).
