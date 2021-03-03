@@ -76,7 +76,7 @@ if ! sha256sum --quiet -c <(echo -n "${IMAGE_SHA}  ${LOCAL_IMAGE_FILE}"); then
 fi
 
 echo "Uploading image to '${OS_CLOUD}' as '${IMAGE_NAME}-new'"
-openstack image create "${IMAGE_NAME}-new" --container-format bare --disk-format qcow2 --file "$LOCAL_IMAGE_FILE" --private --property version="$IMAGE_VERSION"
+new_image_id="$(openstack image create "${IMAGE_NAME}-new" --container-format bare --disk-format qcow2 --file "$LOCAL_IMAGE_FILE" --private --property version="$IMAGE_VERSION" --format value --column id)"
 
 echo "Replace old '$IMAGE_NAME' image with new one on '${OS_CLOUD}'"
 
@@ -85,6 +85,6 @@ openstack image delete "${IMAGE_NAME}-old" || true
 
 # Then swap the images
 openstack image set --name "${IMAGE_NAME}-old" "$IMAGE_NAME" || true
-openstack image set --name "$IMAGE_NAME" "${IMAGE_NAME}-new"
+openstack image set --name "$IMAGE_NAME" "$new_image_id"
 
 echo Done
