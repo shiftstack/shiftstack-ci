@@ -8,21 +8,34 @@ if [ -z "$OS_CLOUD" ]; then
 fi
 
 BRANCH="4.2"
+IMAGE_FORMAT="qcow2"
+RAW_CONVERT="0"
 
-opts=$(getopt -n "$0"  -o "b:" --long 'branch:'  -- "$@")
+opts=$(getopt -n "$0"  -o "rb:" --long 'raw,branch:'  -- "$@")
 
 eval set "--$opts"
 
 CACHE_DIR="${XDG_CACHE_HOME:-${HOME}/.cache}/openshift-installer/image_cache"
 mkdir -p "$CACHE_DIR"
 
+function check_binary {
+    if ! command -v $1 &> /dev/null; then
+        echo "$1 could not be found"
+        exit 1
+    fi
+}
+
 while [[ $# -gt 0 ]]; do
     case "$1" in
+        -r|--raw)
+            check_binary "qemu-img"
+            RAW_CONVERT="1"
+            shift
+            ;;
         -b|--branch)
             BRANCH=$2
             shift 2
             ;;
-
         *)
             break
             ;;
@@ -75,8 +88,16 @@ if ! sha256sum --quiet -c <(echo -n "${IMAGE_SHA}  ${LOCAL_IMAGE_FILE}"); then
     exit 1
 fi
 
+if [ "$RAW_CONVERT" == "1" ]; then
+    RAW_IMAGE_FILE=${LOCAL_IMAGE_FILE%.qcow2}.img
+    echo "Converting QCOW2 image into RAW: ${LOCAL_IMAGE_FILE} to ${RAW_IMAGE_FILE} with qemu-img"
+    qemu-img convert -f qcow2 "${LOCAL_IMAGE_FILE}" -O raw "${RAW_IMAGE_FILE}"
+    rm "${LOCAL_IMAGE_FILE}"
+    LOCAL_IMAGE_FILE="${RAW_IMAGE_FILE}"
+fi
+
 echo "Uploading image to '${OS_CLOUD}' as '${IMAGE_NAME}-new'"
-new_image_id="$(openstack image create "${IMAGE_NAME}-new" --container-format bare --disk-format qcow2 --file "$LOCAL_IMAGE_FILE" --private --property version="$IMAGE_VERSION" --format value --column id)"
+new_image_id="$(openstack image create "${IMAGE_NAME}-new" --container-format bare --disk-format "$IMAGE_FORMAT" --file "$LOCAL_IMAGE_FILE" --private --property version="$IMAGE_VERSION" --format value --column id)"
 
 echo "Replace old '$IMAGE_NAME' image with new one on '${OS_CLOUD}'"
 
