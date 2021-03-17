@@ -45,3 +45,4 @@ openstack container list -f value -c Name |\
 
 ./stale -q volume snapshot | xargs --no-run-if-empty openstack volume snapshot delete
 ./stale -q volume | xargs --no-run-if-empty openstack volume delete
+./stale -q floating ip | xargs --verbose --no-run-if-empty openstack floating ip delete
