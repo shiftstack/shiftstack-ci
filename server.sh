@@ -127,6 +127,7 @@ network_id="$(openstack network create -f value -c id "$name")"
 subnet_id="$(openstack subnet create -f value -c id \
 		--network "$network_id" \
 		--subnet-range '172.16.0.0/24' \
+		--dns-nameserver '1.1.1.1' \
 		"$name")"
 >&2 echo "Created subnet ${subnet_id}"
 
