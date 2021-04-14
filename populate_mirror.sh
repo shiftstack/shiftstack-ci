@@ -66,8 +66,9 @@ while [ $# -gt 0 ]; do
             help
             exit 0
             ;;
-        --debug)
+        -d|--debug)
             set -o xtrace
+            shift 1
             ;;
         -r|--registry)
             LOCAL_REGISTRY=$2
