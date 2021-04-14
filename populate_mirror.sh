@@ -41,7 +41,7 @@ LOCAL_REPOSITORY=ocp4/openshift4
 : ${OCP_RELEASE:="4.6.3"}
 : ${OC_REGISTRY_AUTH_FILE:="auth.json"}
 : ${ARCHITECTURE:="x86_64"}
-: ${PRODUCT_REPO:="openshift-release-dev"}
+: ${PRODUCT_REPO:="quay.io/openshift-release-dev"}
 : ${RELEASE_NAME:="ocp-release"}
 : ${INSECURE:="false"}
 
@@ -56,7 +56,7 @@ help() {
     echo "-h, --help      show this message"
     echo "-i, --insecure  do not verify TLS for mirror registry, default: ${INSECURE}"
     echo "-n, --name      release name, default (for production): ${RELEASE_NAME}"
-    echo "-p, --product   product repository, default (for production): ${PRODUCT_REPO}"
+    echo "-p, --product   product repository, including registry URL, default (for production): ${PRODUCT_REPO}"
     echo "-r, --registry  mirror registry URL (required), e.g.: myregistry.io"
     echo "-v, --version   openshift release version, default: ${OCP_RELEASE}"
     echo ""
@@ -118,7 +118,7 @@ fi
 
 echo "Directly push the release images to the local registry:"
 oc adm -a ${OC_REGISTRY_AUTH_FILE} release mirror --insecure=${INSECURE} \
-     --from=quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE}-${ARCHITECTURE} \
+     --from=${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE}-${ARCHITECTURE} \
      --to=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} \
      --to-release-image=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OCP_RELEASE}-${ARCHITECTURE}
 
