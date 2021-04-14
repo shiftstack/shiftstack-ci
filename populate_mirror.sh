@@ -36,8 +36,6 @@ if ! command -v oc &> /dev/null; then
     exit 1
 fi
 
-LOCAL_REPOSITORY=ocp4/openshift4
-
 : ${OC_REGISTRY_AUTH_FILE:="auth.json"}
 : ${TAG:="4.7.6-x86_64"}
 : ${PRODUCT_REPO:="quay.io/openshift-release-dev"}
@@ -55,7 +53,7 @@ help() {
     echo "-i, --insecure  do not verify TLS for mirror registry, default: ${INSECURE}"
     echo "-n, --name      release name, default (for production): ${RELEASE_NAME}"
     echo "-p, --product   product repository, including registry URL, default (for production): ${PRODUCT_REPO}"
-    echo "-r, --registry  mirror registry URL (required), e.g.: myregistry.io"
+    echo "-r, --registry  mirror registry URL, including namespace (required), e.g.: myregistry.io/foobar"
     echo "-t, --tag       openshift release tag, default: ${TAG}"
     echo ""
 }
@@ -114,10 +112,10 @@ fi
 echo "Directly push the release images to the local registry:"
 oc adm -a ${OC_REGISTRY_AUTH_FILE} release mirror --insecure=${INSECURE} \
      --from=${PRODUCT_REPO}/${RELEASE_NAME}:${TAG} \
-     --to=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} \
-     --to-release-image=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${TAG}
+     --to=${LOCAL_REGISTRY} \
+     --to-release-image=${LOCAL_REGISTRY}:${TAG}
 
 echo "Create the installation program that is based on the content:"
 echo "that we mirrored, extract it and pin it to the release"
-oc adm -a ${OC_REGISTRY_AUTH_FILE} release extract --insecure=${INSECURE} --command=openshift-install "${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${TAG}"
+oc adm -a ${OC_REGISTRY_AUTH_FILE} release extract --insecure=${INSECURE} --command=openshift-install "${LOCAL_REGISTRY}:${TAG}"
 echo "You now have ./openshift-install ready to be used."
