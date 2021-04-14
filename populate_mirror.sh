@@ -38,9 +38,8 @@ fi
 
 LOCAL_REPOSITORY=ocp4/openshift4
 
-: ${OCP_RELEASE:="4.6.3"}
 : ${OC_REGISTRY_AUTH_FILE:="auth.json"}
-: ${ARCHITECTURE:="x86_64"}
+: ${TAG:="4.7.6-x86_64"}
 : ${PRODUCT_REPO:="quay.io/openshift-release-dev"}
 : ${RELEASE_NAME:="ocp-release"}
 : ${INSECURE:="false"}
@@ -50,7 +49,6 @@ help() {
     echo ""
     echo "Usage: ./populate_mirror.sh [options] -r myregistry.io"
     echo "Options:"
-    echo "--arch          architecture of container images, default: ${ARCHITECTURE}"
     echo "--auth          path of registry auth file, default: ${OC_REGISTRY_AUTH_FILE}"
     echo "-d, --debug     enable debug, default: false"
     echo "-h, --help      show this message"
@@ -58,7 +56,7 @@ help() {
     echo "-n, --name      release name, default (for production): ${RELEASE_NAME}"
     echo "-p, --product   product repository, including registry URL, default (for production): ${PRODUCT_REPO}"
     echo "-r, --registry  mirror registry URL (required), e.g.: myregistry.io"
-    echo "-v, --version   openshift release version, default: ${OCP_RELEASE}"
+    echo "-t, --tag       openshift release tag, default: ${TAG}"
     echo ""
 }
 
@@ -75,16 +73,12 @@ while [ $# -gt 0 ]; do
             LOCAL_REGISTRY=$2
             shift 2
             ;;
-        -v|--version)
-            OCP_RELEASE=$2
+        -t|--tag)
+            TAG=$2
             shift 2
             ;;
         --auth)
             OC_REGISTRY_AUTH_FILE=$2
-            shift 2
-            ;;
-        --arch)
-            ARCHITECTURE=$2
             shift 2
             ;;
         -p|--product)
@@ -118,11 +112,11 @@ fi
 
 echo "Directly push the release images to the local registry:"
 oc adm -a ${OC_REGISTRY_AUTH_FILE} release mirror --insecure=${INSECURE} \
-     --from=${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE}-${ARCHITECTURE} \
+     --from=${PRODUCT_REPO}/${RELEASE_NAME}:${TAG} \
      --to=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} \
-     --to-release-image=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OCP_RELEASE}-${ARCHITECTURE}
+     --to-release-image=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${TAG}
 
 echo "Create the installation program that is based on the content:"
 echo "that we mirrored, extract it and pin it to the release"
-oc adm -a ${OC_REGISTRY_AUTH_FILE} release extract --insecure=${INSECURE} --command=openshift-install "${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OCP_RELEASE}-${ARCHITECTURE}"
+oc adm -a ${OC_REGISTRY_AUTH_FILE} release extract --insecure=${INSECURE} --command=openshift-install "${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${TAG}"
 echo "You now have ./openshift-install ready to be used."
