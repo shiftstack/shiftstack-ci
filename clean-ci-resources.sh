@@ -8,11 +8,11 @@ if [ ! -r "$CONFIG" ]; then
 fi
 source ./${CONFIG}
 
-case "$(openstack security group show -f value -c id project-identifier)" in
-	8a1289c1-0584-453a-935c-9a3df67aef32)
+case "$(openstack security group show -f value -c id default)" in
+	ac891596-df7f-4533-9205-62c8f3976f46)
 		>&2 echo 'Operating on MOC'
 		;;
-	72b7dc2c-5698-4514-a142-90b91c68006c)
+	1e7008c1-10f4-4d09-9d6e-d3de70b62eb6)
 		>&2 echo 'Operating on VEXXHOST'
 		;;
 	*)
