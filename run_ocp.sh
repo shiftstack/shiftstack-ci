@@ -75,11 +75,19 @@ if [[ ${OPENSTACK_WORKER_VOLUME_TYPE} != "" ]]; then
         type: ${OPENSTACK_WORKER_VOLUME_TYPE}"
 fi
 
+ADDITIONAL_TRUST_BUNDLE=""
+if [[ ${OPENSTACK_ADDITIONAL_TRUST_BUNDLE} != "" ]]; then
+    ADDITIONAL_TRUST_BUNDLE="additionalTrustBundle: |
+$(sed 's/^/  /' < ${OPENSTACK_ADDITIONAL_TRUST_BUNDLE})
+"
+fi
+
 if [ ! -f ${ARTIFACT_DIR}/install-config.yaml ]; then
     export CLUSTER_ID=$(uuidgen --random)
     cat > ${ARTIFACT_DIR}/install-config.yaml << EOF
 apiVersion: v1
 baseDomain: ${BASE_DOMAIN}
+${ADDITIONAL_TRUST_BUNDLE}
 clusterID:  ${CLUSTER_ID}
 compute:
 - name: worker
