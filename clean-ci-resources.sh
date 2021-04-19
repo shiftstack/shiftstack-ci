@@ -18,6 +18,8 @@ case "$(openstack security group show -f value -c id default)" in
 esac
 
 declare concurrently=false
+resultfile="$(mktemp)"
+trap 'rm -f $resultfile' EXIT
 
 while getopts c opt; do
 	case "$opt" in
@@ -25,21 +27,33 @@ while getopts c opt; do
 		*) >&2 echo "Unknown flag: $opt"; exit 2 ;;
 	esac
 done
+report() {
+	while read -r line; do
+		echo "$* $line" >> "$resultfile"
+		echo "$line"
+	done
+}
 
 for cluster_id in $(./list-clusters -ls); do
-	echo Destroying "$cluster_id"
+	echo "cluster $cluster_id" >> "$resultfile"
+
 	if [ "$concurrently" = true ]; then
-		time ./destroy_cluster.sh -i "$cluster_id" &
+		time ./destroy_cluster.sh -i "$cluster_id" >&2 &
 	else
-		time ./destroy_cluster.sh -i "$cluster_id"
+		time ./destroy_cluster.sh -i "$cluster_id" >&2
 	fi
 done
 
 # Clean leftover containers
-openstack container list -f value -c Name |\
-        grep -vf <(./list-clusters -a) |\
-        xargs --no-run-if-empty openstack container delete -r
+openstack container list -f value -c Name \
+	| grep -vf <(./list-clusters -a) \
+	| report container \
+	| xargs --no-run-if-empty openstack container delete -r \
+	>&2
 
-./stale -q volume snapshot | xargs --verbose --no-run-if-empty openstack volume snapshot delete
-./stale -q volume | xargs --verbose --no-run-if-empty openstack volume delete
-./stale -q floating ip | xargs --verbose --no-run-if-empty openstack floating ip delete
+for resource in 'volume snapshot' 'volume' 'floating ip'; do
+	# shellcheck disable=SC2086
+	./stale -q $resource | report $resource | xargs --verbose --no-run-if-empty openstack $resource delete >&2
+done
+
+cat "$resultfile"
