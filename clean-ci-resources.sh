@@ -1,12 +1,9 @@
 #!/usr/bin/env bash
 
 CONFIG=${CONFIG:-cluster_config.sh}
-if [ ! -r "$CONFIG" ]; then
-    echo "Could not find cluster configuration file."
-    echo "Make sure $CONFIG file exists in the shiftstack-ci directory and that it is readable"
-    exit 1
+if [ -r "$CONFIG" ]; then
+	source ./${CONFIG}
 fi
-source ./${CONFIG}
 
 case "$(openstack security group show -f value -c id default)" in
 	ac891596-df7f-4533-9205-62c8f3976f46)
