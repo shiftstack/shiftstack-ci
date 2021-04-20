@@ -64,7 +64,7 @@ done
 openstack container list -f value -c Name \
 	| grep -vf <(./list-clusters -a) \
 	| report container \
-	| xargs --no-run-if-empty openstack container delete -r \
+	| xargs --verbose --no-run-if-empty openstack container delete -r \
 	>&2
 
 for resource in 'volume snapshot' 'volume' 'floating ip'; do
