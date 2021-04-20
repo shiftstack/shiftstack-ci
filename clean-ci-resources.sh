@@ -1,12 +1,9 @@
 #!/usr/bin/env bash
 
 CONFIG=${CONFIG:-cluster_config.sh}
-if [ ! -r "$CONFIG" ]; then
-    echo "Could not find cluster configuration file."
-    echo "Make sure $CONFIG file exists in the shiftstack-ci directory and that it is readable"
-    exit 1
+if [ -r "$CONFIG" ]; then
+	source ./${CONFIG}
 fi
-source ./${CONFIG}
 
 case "$(openstack security group show -f value -c id default)" in
 	ac891596-df7f-4533-9205-62c8f3976f46)
@@ -20,29 +17,59 @@ case "$(openstack security group show -f value -c id default)" in
 		exit 1
 esac
 
-declare concurrently=false
+declare \
+	concurrently=false \
+	json=false
 
-while getopts c opt; do
+while getopts cj opt; do
 	case "$opt" in
 		c) concurrently=true ;;
+		j) json=true ;;
 		*) >&2 echo "Unknown flag: $opt"; exit 2 ;;
 	esac
 done
 
+resultfile="$(mktemp)"
+trap 'rm $resultfile' EXIT
+
+if [ "$json" = true ]; then
+	cat > $resultfile <<< '{}'
+fi
+
+report() {
+	declare \
+		result='' \
+		resource_type="$*"
+
+	while read -r resource_id; do
+		if [ "$json" = true ]; then
+			result=$(jq ".\"$resource_type\" += [\"$resource_id\"]" "$resultfile")
+		else
+			result="$(cat $resultfile - <<< "$resource_type $resource_id")"
+		fi
+		cat > $resultfile <<< "$result"
+		echo "$resource_id"
+	done
+}
+
 for cluster_id in $(./list-clusters -ls); do
-	echo Destroying "$cluster_id"
 	if [ "$concurrently" = true ]; then
-		time ./destroy_cluster.sh -i "$cluster_id" &
+		time ./destroy_cluster.sh -i "$(echo "$cluster_id" | report cluster)" >&2 &
 	else
-		time ./destroy_cluster.sh -i "$cluster_id"
+		time ./destroy_cluster.sh -i "$(echo "$cluster_id" | report cluster)" >&2
 	fi
 done
 
 # Clean leftover containers
-openstack container list -f value -c Name |\
-        grep -vf <(./list-clusters -a) |\
-        xargs --no-run-if-empty openstack container delete -r
+openstack container list -f value -c Name \
+	| grep -vf <(./list-clusters -a) \
+	| report container \
+	| xargs --no-run-if-empty openstack container delete -r \
+	>&2
 
-./stale -q volume snapshot | xargs --verbose --no-run-if-empty openstack volume snapshot delete
-./stale -q volume | xargs --verbose --no-run-if-empty openstack volume delete
-./stale -q floating ip | xargs --verbose --no-run-if-empty openstack floating ip delete
+for resource in 'volume snapshot' 'volume' 'floating ip'; do
+	# shellcheck disable=SC2086
+	./stale -q $resource | report $resource | xargs --verbose --no-run-if-empty openstack $resource delete >&2
+done
+
+cat "$resultfile"
