@@ -17,30 +17,46 @@ case "$(openstack security group show -f value -c id default)" in
 		exit 1
 esac
 
-declare concurrently=false
-resultfile="$(mktemp)"
-trap 'rm -f $resultfile' EXIT
+declare \
+	concurrently=false \
+	json=false
 
-while getopts c opt; do
+while getopts cj opt; do
 	case "$opt" in
 		c) concurrently=true ;;
+		j) json=true ;;
 		*) >&2 echo "Unknown flag: $opt"; exit 2 ;;
 	esac
 done
+
+resultfile="$(mktemp)"
+trap 'rm $resultfile' EXIT
+
+if [ "$json" = true ]; then
+	cat > $resultfile <<< '{}'
+fi
+
 report() {
-	while read -r line; do
-		echo "$* $line" >> "$resultfile"
-		echo "$line"
+	declare \
+		result='' \
+		resource_type="$*"
+
+	while read -r resource_id; do
+		if [ "$json" = true ]; then
+			result=$(jq ".\"$resource_type\" += [\"$resource_id\"]" "$resultfile")
+		else
+			result="$(cat $resultfile - <<< "$resource_type $resource_id")"
+		fi
+		cat > $resultfile <<< "$result"
+		echo "$resource_id"
 	done
 }
 
 for cluster_id in $(./list-clusters -ls); do
-	echo "cluster $cluster_id" >> "$resultfile"
-
 	if [ "$concurrently" = true ]; then
-		time ./destroy_cluster.sh -i "$cluster_id" >&2 &
+		time ./destroy_cluster.sh -i "$(echo "$cluster_id" | report cluster)" >&2 &
 	else
-		time ./destroy_cluster.sh -i "$cluster_id" >&2
+		time ./destroy_cluster.sh -i "$(echo "$cluster_id" | report cluster)" >&2
 	fi
 done
 
