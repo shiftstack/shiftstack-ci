@@ -45,9 +45,9 @@ report() {
 		if [ "$json" = true ]; then
 			result=$(jq ".\"$resource_type\" += [\"$resource_id\"]" "$resultfile")
 		else
-			result="$(cat $resultfile - <<< "$resource_type $resource_id")"
+			result="$(printf '%s\t%s' "$resource_type" "$resource_id" | cat "$resultfile" - )"
 		fi
-		cat > $resultfile <<< "$result"
+		cat > "$resultfile" <<< "$result"
 		echo "$resource_id"
 	done
 }
