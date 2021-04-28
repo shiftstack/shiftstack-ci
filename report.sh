@@ -11,65 +11,80 @@ print_help() {
 	echo -e 'Run the CI cleanup, store logs and output a report.'
 	echo
 	echo -e 'Use:'
-	echo -e "\t${0} -k slack_hook [-o log_container -c cloud] target_cloud..."
-	echo
-	echo -e 'Required configuration:'
-	echo -e "\t-k: A Slack hook."
+	echo -e "\t${0} [-o log_container -c cloud] [-m metrics_file] target_cloud..."
 	echo
 	echo -e 'Options:'
 	echo -e "\t-o: The name of a Swift container where to store logs."
 	echo -e "\t-c: The cloud where the Swift container for logs is situated."
-	echo
-	echo -e "Examples:"
-	echo -e "\t${0} -k <slack_hook> -c <cloud> -o <log_container> <target_cloud_1> <target_cloud_2>..."
+	echo -e "\t-m: A file where to store metrics."
 }
 
 declare \
-	slack_hook='' \
 	log_cloud='' \
-	log_container=''
+	log_container='' \
+	metrics=/dev/null \
+	log_file=/dev/stderr
 
-while getopts k:c:o:h o; do
-	case "$o" in
-		k) slack_hook="$OPTARG" ;;
-		c) log_cloud="$OPTARG" ;;
+while getopts c:o:m:h opt; do
+	case "$opt" in
+		c) log_cloud="$OPTARG"     ;;
 		o) log_container="$OPTARG" ;;
-		h) print_help; exit 0 ;;
-		*) print_help; exit 1 ;;
+		m) metrics="$OPTARG"       ;;
+		h) print_help; exit 0      ;;
+		*) print_help; exit 1      ;;
 	esac
 done
-readonly slack_hook log_cloud log_container
+readonly log_cloud log_container metrics
 shift $((OPTIND-1))
 
-if [[ -z "$slack_hook" ]]; then
-	>&2 echo 'Slack hook (-k) not set. Exiting.'
-	exit 1
-fi
-
-declare log_file=/dev/null
 if [[ -n "$log_container" ]]; then
 	if [[ -z "$log_cloud" ]]; then
 		>&2 echo 'Log container (-o) set, but log cloud (-c) not set. Exiting.'
 		exit 1
 	fi
-	container_base_url="$(openstack catalog show --os-cloud="${log_cloud}" -f json object-store | jq -r '.endpoints[] | select(.interface=="public").url')"
 else
 	>&2 echo "Log container (-o) not set. Redirecting logs to $log_file"
 fi
 
+increment() {
+	declare -r \
+		metrics_file="$1" \
+		cloud="$2" \
+		property="${3// /_}" \
+		increment="${4:-1}"
+
+	metric_name="${property}{cloud=\"${cloud}\"}"
+
+	if ! grep -q "$metric_name" "$metrics_file"; then
+		echo "${metric_name} ${increment}" >> "$metrics_file"
+	else
+		tmp_metrics=$(<"$metrics_file")
+		search="\(${metric_name}\) \([0-9]\+\)"
+		replace="printf '%s %s' '\1' \"\$((\2+${increment}))\""
+		sed "s|${search}|${replace}|e" <<< "$tmp_metrics" > "$metrics_file"
+	fi
+}
+
+to_metrics() {
+	declare -r \
+		metrics_file="$1" \
+		cloud="$2"
+
+	touch "$metrics_file"
+
+	while IFS=$'\t' read -ra resource; do
+		increment "$metrics_file" "$cloud" "${resource[0]}"
+	done
+}
+
 for OS_CLOUD in "$@"; do
 	if [[ -n "$log_container" ]]; then
 		log_filename="clean-ci-log_$(date +'%s')_${OS_CLOUD}.txt"
-		log_url="${container_base_url}/${log_container}/${log_filename}"
 		log_file="$(mktemp)"
 	fi
 
 	export OS_CLOUD
-	./clean-ci-resources.sh -j 2> "$log_file" \
-		| jq '[to_entries[] | {(.key): (.value | length)}] | reduce .[] as $item ({}; .+$item)' \
-		| sed 's|"|\\"|g' \
-		| cat <(printf '{"text":"Stale resources on %s:\\n```\\n' "$OS_CLOUD") - <(printf '```\\n%s"}' "$log_url") \
-		| curl -sS -X POST -H 'Content-type: application/json' --data @- "$slack_hook"
+	./clean-ci-resources.sh 2> "$log_file" | to_metrics "$metrics" "$OS_CLOUD"
 
 	if [[ -n "$log_container" ]]; then
 		openstack --os-cloud="$log_cloud" object create -f value -c object --name "$log_filename" "$log_container" "$log_file"
