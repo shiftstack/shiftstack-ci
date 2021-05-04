@@ -153,7 +153,7 @@ server_id="$(openstack server create -f value -c id \
 >&2 echo "Created server ${server_id}"
 
 fip_id="$(openstack floating ip create -f value -c id \
-		--description "$name FIP" \
+		--description "$name" \
 		"$external_network")"
 >&2 echo "Created floating IP ${fip_id} $(openstack floating ip show -f value -c floating_ip_address "$fip_id")"
 openstack server add floating ip "$server_id" "$fip_id"
