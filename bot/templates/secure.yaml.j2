@@ -1,0 +1,9 @@
+clouds:
+{% for cloud in clouds %}
+
+  {{ cloud.name }}:
+    auth:
+      application_credential_id: '{{ cloud.credential_id }}'
+      application_credential_secret: '{{ cloud.credential_secret }}'
+    auth_type: "v3applicationcredential"
+{% endfor %}

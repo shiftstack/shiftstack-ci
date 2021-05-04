@@ -3,3 +3,6 @@
 
 # ignore cluster artifacts
 /clusters
+
+# ignore cloud credentials
+/bot/cloud-credentials.json

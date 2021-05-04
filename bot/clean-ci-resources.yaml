@@ -1,0 +1,100 @@
+---
+
+- hosts: all
+
+  vars_files:
+  - cloud-credentials.json
+
+  tasks:
+  - name: 'Install system packages'
+    become: yes
+    dnf:
+      name:
+      - git
+      - jq
+      - python-openstackclient
+      - caddy
+      state: latest
+
+  - name: 'Add the clean-ci-resources user'
+    become: yes
+    user:
+      name: clean-ci-resources
+
+  - name: 'Add the clean-ci-resources metrics directory'
+    become: yes
+    file:
+      name: /var/clean-ci-resources
+      state: directory
+      owner: clean-ci-resources
+      group: caddy
+      mode: g+r
+
+  - name: 'Add an openstack config directory'
+    become: yes
+    become_user: clean-ci-resources
+    file:
+      name: /home/clean-ci-resources/.config/openstack
+      state: directory
+
+  - name: 'Add clouds.yaml'
+    become: yes
+    become_user: clean-ci-resources
+    template:
+      src: templates/clouds.yaml.j2
+      dest: /home/clean-ci-resources/.config/openstack/clouds.yaml
+
+  - name: 'Add secure.yaml'
+    become: yes
+    become_user: clean-ci-resources
+    template:
+      src: templates/secure.yaml.j2
+      dest: /home/clean-ci-resources/.config/openstack/secure.yaml
+
+  - name: 'Install openshift-install'
+    become: yes
+    unarchive:
+      remote_src: yes
+      src: '{{ openshift_install_src }}'
+      dest: /usr/bin/
+      exclude:
+      - README.md
+
+  - name: 'Clone shiftstack-ci'
+    become: yes
+    become_user: clean-ci-resources
+    git:
+      repo: 'https://github.com/shiftstack/shiftstack-ci.git'
+      dest: /home/clean-ci-resources/shiftstack-ci
+
+  - name: 'Add metrics webserver config'
+    become: yes
+    template:
+      src: templates/Caddyfile.j2
+      dest: /etc/caddy/Caddyfile
+
+  - name: 'Create the systemd service for clean-ci-resources '
+    become: yes
+    template:
+      src: templates/clean-ci-resources.service.j2
+      dest: /lib/systemd/system/clean-ci-resources.service
+
+  - name: 'Create the systemd timer for clean-ci-resources '
+    become: yes
+    template:
+      src: templates/clean-ci-resources.timer.j2
+      dest: /lib/systemd/system/clean-ci-resources.timer
+
+  - name: 'Enable the clean-ci-resources timer'
+    become: yes
+    systemd:
+      name: clean-ci-resources.timer
+      enabled: yes
+      state: started
+
+  - name: 'Enable the metrics webserver'
+    become: yes
+    systemd:
+      name: caddy.service
+      enabled: yes
+      state: started

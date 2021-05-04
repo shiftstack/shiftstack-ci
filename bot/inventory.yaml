@@ -1,0 +1,12 @@
+---
+
+all:
+  hosts:
+    shiftstack-bot:
+      ansible_python_interpreter: "{{ansible_playbook_python}}"
+
+      ci_clean_log_cloud: 'psi'
+      ci_clean_log_container: 'shiftstack-bot'
+      ci_clean_timer_oncalendar: 'hourly'
+
+      openshift_install_src: 'https://mirror.openshift.com/pub/openshift-v4/clients/ocp-dev-preview/latest-4.8/openshift-install-linux.tar.gz'

@@ -1,0 +1,8 @@
+clouds:
+{% for cloud in clouds %}
+
+  {{ cloud.name }}:
+    auth:
+      auth_url: '{{ cloud.auth_url }}'
+    identity_api_version: 3
+{% endfor %}
