@@ -15,7 +15,7 @@ set -x
 declare -r installer="${OPENSHIFT_INSTALLER:-$GOPATH/src/github.com/openshift/installer/bin/openshift-install}"
 
 # check whether we have a free floating IP
-FLOATING_IP=$(openstack floating ip list --status DOWN --network $OPENSTACK_EXTERNAL_NETWORK --long --format value -c "Floating IP Address" -c Description | sed 's/ .*//g')
+FLOATING_IP=$(openstack floating ip list --status DOWN --network $OPENSTACK_EXTERNAL_NETWORK --long --format value -c "Floating IP Address" -c Description | grep ${CLUSTER_NAME} | sed 's/ .*//g')
 FLOATING_IP=$(echo $FLOATING_IP | cut -d ' ' -f1)
 
 # create new floating ip if doesn't exist
@@ -125,7 +125,7 @@ fi
 # check whether we have a free floating IP
 INGRESS_PORT=$(openstack port list --format value -c Name | awk "/${CLUSTER_NAME}.*-ingress-port/ {print}")
 if [ -n "$INGRESS_PORT" ]; then
-  APPS_FLOATING_IP=$(openstack floating ip list --status DOWN --network $OPENSTACK_EXTERNAL_NETWORK --long --format value -c "Floating IP Address" -c Description | awk 'NF<=1 && NR==1 {print}')
+  APPS_FLOATING_IP=$(openstack floating ip list --status DOWN --network $OPENSTACK_EXTERNAL_NETWORK --long --format value -c "Floating IP Address" -c Description | grep ${CLUSTER_NAME} | awk 'NF<=1 && NR==1 {print}')
 
   # create new floating ip if doesn't exist
   if [ -z "$APPS_FLOATING_IP" ]; then
