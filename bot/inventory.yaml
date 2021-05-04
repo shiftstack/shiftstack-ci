@@ -10,3 +10,9 @@ all:
       ci_clean_timer_oncalendar: 'hourly'
 
       openshift_install_src: 'https://mirror.openshift.com/pub/openshift-v4/clients/ocp-dev-preview/latest-4.8/openshift-install-linux.tar.gz'
+
+      cireport_timer_oncalendar: 'hourly'
+      cireport_src: 'https://github.com/shiftstack/gazelle/releases/download/v0.1/cireport'
+      cireport_checksum: 'sha256:235a8626f24fd70be7b5fd694093f087b89ae0073bad4407cc3d8f184661b169'
+      cireport_local_credentials_path: '~/code/src/github.com/shiftstack/gazelle/credentials.json'
+      cireport_local_token_path: '~/code/src/github.com/shiftstack/gazelle/token.json'
