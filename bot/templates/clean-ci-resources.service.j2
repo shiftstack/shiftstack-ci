@@ -1,0 +1,10 @@
+[Unit]
+Description=clean-ci-resources
+
+[Service]
+User=clean-ci-resources
+Environment=log_cloud={{ ci_clean_log_cloud }}
+Environment=log_container={{ ci_clean_log_container }}
+Environment=metrics_file=/var/clean-ci-resources/metrics
+WorkingDirectory=/home/clean-ci-resources/shiftstack-ci
+ExecStart=/usr/bin/env bash /home/clean-ci-resources/shiftstack-ci/report.sh -c "$log_cloud" -o "$log_container" -m "$metrics_file" moc-ci vexxhost

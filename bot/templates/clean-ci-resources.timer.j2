@@ -1,0 +1,10 @@
+[Unit]
+Description=clean-ci-resources timer
+
+[Timer]
+Unit=clean-ci-resources.service
+OnCalendar={{ ci_clean_timer_oncalendar }}
+Persistent=false
+
+[Install]
+WantedBy=timers.target

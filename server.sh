@@ -119,6 +119,7 @@ sg_id="$(openstack security group create -f value -c id "$name")"
 >&2 echo "Created security group ${sg_id}"
 openstack security group rule create --ingress --protocol tcp  --dst-port 22 --description "${name} SSH" "$sg_id" >/dev/null
 openstack security group rule create --ingress --protocol icmp               --description "${name} ingress ping" "$sg_id" >/dev/null
+openstack security group rule create --ingress --protocol tcp  --dst-port 80 --description "${name} ingress HTTP" "$sg_id" >/dev/null
 >&2 echo 'Security group rules created.'
 
 network_id="$(openstack network create -f value -c id "$name")"
