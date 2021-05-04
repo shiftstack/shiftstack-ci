@@ -1,0 +1,57 @@
+---
+
+- hosts: all
+
+  tasks:
+  - name: 'Add the cireport user'
+    become: yes
+    user:
+      name: cireport
+
+  - name: 'Create a directory for cireport'
+    become: yes
+    become_user: cireport
+    file:
+      name: /home/cireport/gazelle
+      state: directory
+
+  - name: 'Copy local cireport credentials'
+    become: yes
+    become_user: cireport
+    copy:
+      src: '{{ cireport_local_credentials_path }}'
+      dest: /home/cireport/gazelle/
+
+  - name: 'Copy local cireport token'
+    become: yes
+    become_user: cireport
+    copy:
+      src: '{{ cireport_local_token_path }}'
+      dest: /home/cireport/gazelle/
+
+  - name: 'Get cireport'
+    become: yes
+    get_url:
+      url: '{{ cireport_src }}'
+      checksum: '{{ cireport_checksum }}'
+      dest: /usr/bin/cireport
+      mode: 0755
+
+  - name: 'Create the systemd service for cireport'
+    become: yes
+    template:
+      src: templates/cireport.service.j2
+      dest: /lib/systemd/system/cireport.service
+
+  - name: 'Create the systemd timer for cireport'
+    become: yes
+    template:
+      src: templates/cireport.timer.j2
+      dest: /lib/systemd/system/cireport.timer
+
+  - name: 'Enable the cireport timer'
+    become: yes
+    systemd:
+      name: cireport.timer
+      enabled: yes
+      state: started

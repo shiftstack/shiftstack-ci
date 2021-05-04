@@ -1,0 +1,9 @@
+[Unit]
+Description=cireport
+
+[Service]
+User=cireport
+Type=simple
+Environment=CIREPORT_USER=shiftstack-bot
+WorkingDirectory=/home/cireport/gazelle
+ExecStart=/usr/bin/cireport

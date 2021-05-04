@@ -1,0 +1,10 @@
+[Unit]
+Description=cireport timer
+
+[Timer]
+Unit=cireport.service
+OnCalendar={{ cireport_timer_oncalendar }}
+Persistent=false
+
+[Install]
+WantedBy=timers.target
