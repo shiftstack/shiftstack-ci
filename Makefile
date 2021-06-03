@@ -18,3 +18,7 @@ bot/cloud-credentials.json:
 server:
 	OS_CLOUD=psi ./server.sh -f ci.m1.micro -i Fedora-Cloud-Base-33 -e provider_net_shared_3 -k $(KEY_NAME) -p shiftstack-bot
 .PHONY: server
+
+shellcheck:
+	shellcheck ./clean-ci-resources.sh
+.PHONY: shellcheck

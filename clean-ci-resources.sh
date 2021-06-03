@@ -2,7 +2,8 @@
 
 CONFIG=${CONFIG:-cluster_config.sh}
 if [ -r "$CONFIG" ]; then
-	source ./${CONFIG}
+	# shellcheck disable=SC1090
+	source "./${CONFIG}"
 fi
 
 case "$(openstack security group show -f value -c id default)" in
@@ -33,7 +34,7 @@ resultfile="$(mktemp)"
 trap 'rm $resultfile' EXIT
 
 if [ "$json" = true ]; then
-	cat > $resultfile <<< '{}'
+	cat > "$resultfile" <<< '{}'
 fi
 
 report() {
