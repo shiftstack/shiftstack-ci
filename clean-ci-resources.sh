@@ -18,24 +18,16 @@ case "$(openstack security group show -f value -c id default)" in
 		exit 1
 esac
 
-declare \
-	concurrently=false \
-	json=false
+declare resultfile='/dev/null'
 
-while getopts cj opt; do
+while getopts o: opt; do
 	case "$opt" in
-		c) concurrently=true ;;
-		j) json=true ;;
+		o) resultfile="$OPTARG" ;;
 		*) >&2 echo "Unknown flag: $opt"; exit 2 ;;
 	esac
 done
 
-resultfile="$(mktemp)"
-trap 'rm $resultfile' EXIT
-
-if [ "$json" = true ]; then
-	cat > "$resultfile" <<< '{}'
-fi
+cat > "$resultfile" <<< '{}'
 
 report() {
 	declare \
@@ -43,34 +35,23 @@ report() {
 		resource_type="$*"
 
 	while read -r resource_id; do
-		if [ "$json" = true ]; then
-			result=$(jq ".\"$resource_type\" += [\"$resource_id\"]" "$resultfile")
-		else
-			result="$(printf '%s\t%s' "$resource_type" "$resource_id" | cat "$resultfile" - )"
-		fi
+		result=$(jq ".\"$resource_type\" += [\"$resource_id\"]" "$resultfile")
 		cat > "$resultfile" <<< "$result"
 		echo "$resource_id"
 	done
 }
 
 for cluster_id in $(./list-clusters -ls); do
-	if [ "$concurrently" = true ]; then
-		time ./destroy_cluster.sh -i "$(echo "$cluster_id" | report cluster)" >&2 &
-	else
-		time ./destroy_cluster.sh -i "$(echo "$cluster_id" | report cluster)" >&2
-	fi
+	time ./destroy_cluster.sh -i "$(echo "$cluster_id" | report cluster)"
 done
 
 # Clean leftover containers
 openstack container list -f value -c Name \
 	| grep -vf <(./list-clusters -a) \
 	| report container \
-	| xargs --verbose --no-run-if-empty openstack container delete -r \
-	>&2
+	| xargs --verbose --no-run-if-empty openstack container delete -r
 
 for resource in 'volume snapshot' 'volume' 'floating ip'; do
 	# shellcheck disable=SC2086
-	./stale -q $resource | report $resource | xargs --verbose --no-run-if-empty openstack $resource delete >&2
+	./stale -q $resource | report $resource | xargs --verbose --no-run-if-empty openstack $resource delete
 done
-
-cat "$resultfile"
