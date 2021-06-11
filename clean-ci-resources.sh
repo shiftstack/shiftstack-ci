@@ -19,12 +19,10 @@ case "$(openstack security group show -f value -c id default)" in
 esac
 
 declare \
-	concurrently=false \
 	json=false
 
-while getopts cj opt; do
+while getopts j opt; do
 	case "$opt" in
-		c) concurrently=true ;;
 		j) json=true ;;
 		*) >&2 echo "Unknown flag: $opt"; exit 2 ;;
 	esac
@@ -54,11 +52,7 @@ report() {
 }
 
 for cluster_id in $(./list-clusters -ls); do
-	if [ "$concurrently" = true ]; then
-		time ./destroy_cluster.sh -i "$(echo "$cluster_id" | report cluster)" >&2 &
-	else
-		time ./destroy_cluster.sh -i "$(echo "$cluster_id" | report cluster)" >&2
-	fi
+	time ./destroy_cluster.sh -i "$(echo "$cluster_id" | report cluster)" >&2
 done
 
 # Clean leftover containers
