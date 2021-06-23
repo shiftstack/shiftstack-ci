@@ -51,7 +51,7 @@ while getopts lash o; do
 done
 
 for network in $(openstack network list -c Name -f value); do
-	if [[ $network = *-*-openshift ]] || [[ $network = *-*-network ]]; then
+	if [[ $network = *-*-openshift ]] || [[ $network = *-*-network ]] && [[ $network != *"kuryr"* ]]; then
 		declare CLUSTER_ID="$network"
 
 		# IPI
