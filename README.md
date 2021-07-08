@@ -3,10 +3,6 @@
 This repository contains tools to help build and simplify a testing environment
 for the development of OpenShift 4.x installation against an OpenStack cloud.
 
-It is complementary to
-[ocp-doit](https://github.com/shiftstack-dev-tools/ocp-doit) that focus on
-deploying OCP using a standalone TripleO.
-
 ## Prerequisites
 
 Access to an OpenStack cloud fitting the [OpenShift on OpenStack
