@@ -36,8 +36,6 @@ if ! command -v oc &> /dev/null; then
     exit 1
 fi
 
-LOCAL_REPOSITORY=ocp4/openshift4
-
 : ${OCP_RELEASE:="4.6.3"}
 : ${OC_REGISTRY_AUTH_FILE:="auth.json"}
 : ${ARCHITECTURE:="x86_64"}
@@ -57,7 +55,7 @@ help() {
     echo "-i, --insecure  do not verify TLS for mirror registry, default: ${INSECURE}"
     echo "-n, --name      release name, default (for production): ${RELEASE_NAME}"
     echo "-p, --product   product repository, default (for production): ${PRODUCT_REPO}"
-    echo "-r, --registry  mirror registry URL (required), e.g.: myregistry.io"
+    echo "-r, --registry  mirror registry URL + namespace + repository (required), e.g.: myregistry.io/testuser/ocp4"
     echo "-v, --version   openshift release version, default: ${OCP_RELEASE}"
     echo ""
 }
@@ -68,8 +66,9 @@ while [ $# -gt 0 ]; do
             help
             exit 0
             ;;
-        --debug)
+        -d|--debug)
             set -o xtrace
+            shift 1
             ;;
         -r|--registry)
             LOCAL_REGISTRY=$2
@@ -119,10 +118,10 @@ fi
 echo "Directly push the release images to the local registry:"
 oc adm -a ${OC_REGISTRY_AUTH_FILE} release mirror --insecure=${INSECURE} \
      --from=quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE}-${ARCHITECTURE} \
-     --to=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} \
-     --to-release-image=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OCP_RELEASE}-${ARCHITECTURE}
+     --to=${LOCAL_REGISTRY} \
+     --to-release-image=${LOCAL_REGISTRY}:${OCP_RELEASE}-${ARCHITECTURE}
 
 echo "Create the installation program that is based on the content:"
 echo "that we mirrored, extract it and pin it to the release"
-oc adm -a ${OC_REGISTRY_AUTH_FILE} release extract --insecure=${INSECURE} --command=openshift-install "${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OCP_RELEASE}-${ARCHITECTURE}"
+oc adm -a ${OC_REGISTRY_AUTH_FILE} release extract --insecure=${INSECURE} --command=openshift-install "${LOCAL_REGISTRY}:${OCP_RELEASE}-${ARCHITECTURE}"
 echo "You now have ./openshift-install ready to be used."
