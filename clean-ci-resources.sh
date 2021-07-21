@@ -16,7 +16,7 @@ case "$(openstack security group show -f value -c id default)" in
 	25b7cd46-495e-4862-a4a8-2222af553092)
 		>&2 echo 'Operating on Kuryr Cloud'
 		;;
-	49dabe7b-10e8-416d-8b67-8de1ec2cff7e)
+	1c12e21a-7208-49e3-a17b-7f7241906f61)
 		>&2 echo 'Operating on vh-mecha'
 		;;
 	*)
