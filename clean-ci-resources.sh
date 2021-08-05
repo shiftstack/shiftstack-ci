@@ -48,7 +48,7 @@ report() {
 }
 
 for cluster_id in $(./list-clusters -ls); do
-	time ./destroy_cluster.sh -i "$(echo "$cluster_id" | report cluster)"
+	time ./destroy_cluster.sh -f -i "$(echo "$cluster_id" | report cluster)"
 done
 
 # Clean leftover containers
