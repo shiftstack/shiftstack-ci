@@ -68,11 +68,6 @@ list_server() {
 	done
 }
 
-list_port() {
-	openstack port list -f json -c ID -c Name -c 'Updated At' \
-		| jq -r '.[] | "\(.ID) \(."Updated At") \(.Name)"'
-}
-
 list_security_group() {
 	for resource_id in $(openstack security group list -f value -c ID); do
 		res="$(openstack security group show -f json -c updated_at -c name "$resource_id")"
@@ -98,9 +93,7 @@ list_generic() {
 case $resource_type in
 	server)
 		list_server ;;
-	port)
-		list_port ;;
-	'network'|'network trunk'|'subnet'|'floating ip'|'volume'|'volume snapshot')
+	'network'|'network trunk'|'subnet'|'floating ip'|'volume'|'volume snapshot'|'port')
 		list_generic "$resource_type" ;;
 	'security group')
 		list_security_group ;;
