@@ -57,7 +57,7 @@ openstack container list -f value -c Name \
 	| report container \
 	| xargs --verbose --no-run-if-empty openstack container delete -r
 
-for resource in 'volume snapshot' 'volume' 'floating ip'; do
+for resource in 'volume snapshot' 'volume' 'floating ip' 'security group'; do
 	# shellcheck disable=SC2086
 	./stale -q $resource | report $resource | xargs --verbose --no-run-if-empty openstack $resource delete
 done
