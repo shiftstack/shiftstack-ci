@@ -85,6 +85,16 @@ list_security_group() {
 	done
 }
 
+list_loadbalancer() {
+	declare rt="loadbalancer"
+	for resource_id in $(openstack "$rt" list -f value -c id); do
+		res="$(openstack "$rt" show -f json -c updated_at -c name "$resource_id")"
+		update_time="$(jq -r '.updated_at' <<< "$res")"
+		name="$(jq -r '.name' <<< "$res")"
+		printf '%s %s %s\n' "$resource_id" "$update_time" "$name"
+	done
+}
+
 list_generic() {
 	declare rt="$1"
 	for resource_id in $(openstack "$rt" list -f value -c ID); do
@@ -102,6 +112,8 @@ case $resource_type in
 		list_port ;;
 	'network'|'network trunk'|'subnet'|'floating ip'|'volume'|'volume snapshot')
 		list_generic "$resource_type" ;;
+	'loadbalancer')
+		list_loadbalancer ;;
 	'security group')
 		list_security_group ;;
 	'server group')
