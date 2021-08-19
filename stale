@@ -73,6 +73,18 @@ list_port() {
 		| jq -r '.[] | "\(.ID) \(."Updated At") \(.Name)"'
 }
 
+list_security_group() {
+	for resource_id in $(openstack security group list -f value -c ID); do
+		res="$(openstack security group show -f json -c updated_at -c name "$resource_id")"
+		update_time="$(jq -r '.updated_at' <<< "$res")"
+		name="$(jq -r '.name' <<< "$res")"
+		# we can't and don't want to remove the default security group
+		if [ "$name" != "default" ]; then
+			printf '%s %s %s\n' "$resource_id" "$update_time" "$name"
+		fi
+	done
+}
+
 list_generic() {
 	declare rt="$1"
 	for resource_id in $(openstack "$rt" list -f value -c ID); do
@@ -88,8 +100,10 @@ case $resource_type in
 		list_server ;;
 	port)
 		list_port ;;
-	'network'|'network trunk'|'subnet'|'floating ip'|'security group'|'volume'|'volume snapshot')
+	'network'|'network trunk'|'subnet'|'floating ip'|'volume'|'volume snapshot')
 		list_generic "$resource_type" ;;
+	'security group')
+		list_security_group ;;
 	'server group')
 		>&2 printf 'Creation date is not available for %s.' "$resource_type"
 		exit 3
