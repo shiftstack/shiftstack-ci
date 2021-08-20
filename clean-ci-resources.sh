@@ -58,6 +58,22 @@ openstack container list -f value -c Name \
 	| xargs --verbose --no-run-if-empty openstack container delete -r
 
 for resource in 'volume snapshot' 'volume' 'floating ip' 'security group'; do
+	if [[ ${resource} == 'volume' ]]; then
+	  for r in $(./stale -q "$resource"); do
+	    status=$(openstack "${resource}" show -c status -f value "${r}")
+		case "$status" in
+			# For Cinder volumes, deletable states are documented here:
+			# https://docs.openstack.org/api-ref/block-storage/v3/index.html?expanded=delete-a-volume-detail#delete-a-volume
+			available|in-use|error|error_restoring|error_extending|error_managing)
+				break
+				;;
+			*)
+				echo "${resource} ${r} in wrong state: ${status}, will try to set it to 'error'"
+				openstack "$resource" set --state error "$r" || >&2 echo "Failed to set ${resource} ${r} state to error, ${r} will probably fail to be removed..."
+				;;
+		esac
+	  done
+	fi
 	# shellcheck disable=SC2086
 	./stale -q $resource | report $resource | xargs --verbose --no-run-if-empty openstack $resource delete
 done
