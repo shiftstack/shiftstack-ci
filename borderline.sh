@@ -12,6 +12,7 @@ help() {
 
 : ${min_percentage:="15"}
 : ${failed:="0"}
+project_id=$(openstack token issue -f value -c project_id)
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -31,47 +32,34 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-declare -A limits
-while IFS= read -r line;do
-    metric_name=$(echo "$line" | awk '{ print $1 }')
-    metric_val=$(echo "$line" | awk '{ print $2 }')
-    limits+=(["$metric_name"]="$metric_val")
-done < <(openstack limits show --absolute -f value)
+check_quotas() {
+    service=$1
+    echo "Checking quotas for ${service}:"
+    while IFS= read -r line;do
+        metric_name=$(echo "$line" | awk '{ print $1 }')
+        metric_inuse=$(echo "$line" | awk '{ print $2 }')
+        metric_reserved=$(echo "$line" | awk '{ print $3 }')
+        metric_limit=$(echo "$line" | awk '{ print $4 }')
+        if [[ "$metric_limit" -eq -1 ]]; then
+            echo "Unlimited quotas for ${metric_name}"
+            continue
+        fi
+        ((metric_available=$metric_limit-$metric_reserved-$metric_inuse))
+        ((percentage_value=$metric_available*100/$metric_limit))
+        echo "  Available resources for ${metric_name}: ${percentage_value}%"
+        if [[ "$percentage_value" -lt "$min_percentage" ]]; then
+            echo "  WARNING: Only $percentage_value% of $metric_name are available"
+            failed=1
+        fi
+    done < <(openstack quota list --detail --$service --project ${project_id} -f value)
+}
 
-for res in "${!limits[@]}"; do
-    # we only want to capture resources that have a "used" metric,
-    # and start by "total".
-    [[ $res = total* ]] || continue
-    res=${res#"total"}
-    res=${res%"Used"}
-    # API snowflakes...
-    if [[ "$res" == "RAM" ]]; then
-        max_name="maxTotalRAMSize"
-    elif [[ "$res" == "SecurityGroups" || "$res" == "ServerGroups" || "$res" == "Gigabytes" ]]; then
-        max_name="max${res}"
-    elif [[ "$res" == "Gigabytes" ]]; then
-        continue
-    else
-        max_name="maxTotal${res}"
-    fi
-    max_value=${limits[$max_name]}
-    if [[ -z "$max_value" ]]; then
-        continue
-    fi
-    used_name="total${res}Used"
-    used_value=${limits[$used_name]}
-    # In OpenStack, -1 means unlimited quotas (e.g. no limit)
-    if [[ "$max_value" == -1 ]]; then
-        continue
-    fi
-    ((available_value=$max_value-$used_value))
-    ((percentage_value=$available_value*100/$max_value))
-    if [[ "$percentage_value" -lt "$min_percentage" ]]; then
-        echo "WARNING: Only $percentage_value% of $res are available"
-        failed=1
-    fi
-done
+check_quotas compute
+check_quotas network
 
 if [[ "$failed" -eq 1 ]]; then
+    echo "Some resources have less than ${min_percentage}% available, actions should be taken!"
     exit 1
 fi
+
+echo "No issue found, all resources have at least ${min_percentage}% of the total available"
