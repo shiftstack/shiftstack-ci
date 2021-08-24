@@ -41,15 +41,16 @@ check_quotas() {
         metric_reserved=$(echo "$line" | awk '{ print $3 }')
         metric_limit=$(echo "$line" | awk '{ print $4 }')
         if [[ "$metric_limit" -eq -1 ]]; then
-            echo "Unlimited quotas for ${metric_name}"
+            echo "  Unlimited quotas for ${metric_name}"
             continue
         fi
         ((metric_available=$metric_limit-$metric_reserved-$metric_inuse))
         ((percentage_value=$metric_available*100/$metric_limit))
-        echo "  Available resources for ${metric_name}: ${percentage_value}%"
         if [[ "$percentage_value" -lt "$min_percentage" ]]; then
             echo "  WARNING: Only $percentage_value% of $metric_name are available"
             failed=1
+        else
+            echo "  Available resources for ${metric_name}: ${percentage_value}%"
         fi
     done < <(openstack quota list --detail --$service --project ${project_id} -f value)
 }
