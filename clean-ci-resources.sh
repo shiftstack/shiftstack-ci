@@ -57,7 +57,7 @@ openstack container list -f value -c Name \
 	| report container \
 	| xargs --verbose --no-run-if-empty openstack container delete -r
 
-for resource in 'volume snapshot' 'volume' 'floating ip' 'security group'; do
+for resource in 'volume snapshot' 'volume' 'floating ip' 'security group' 'keypair'; do
 	if [[ ${resource} == 'volume' ]]; then
 	  for r in $(./stale -q "$resource"); do
 	    status=$(openstack "${resource}" show -c status -f value "${r}")
