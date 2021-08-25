@@ -20,5 +20,5 @@ server:
 .PHONY: server
 
 shellcheck:
-	shellcheck ./clean-ci-resources.sh
+	shellcheck ./clean-ci-resources.sh ./metrics.sh
 .PHONY: shellcheck
