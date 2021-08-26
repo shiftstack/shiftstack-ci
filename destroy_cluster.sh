@@ -102,7 +102,6 @@ if [[ $FORCE == true ]]; then
     openstack server group delete $INFRA_ID-worker
 
     for c in $(openstack container list -f value); do
-        echo $c
         openstack container show $c | grep $INFRA_ID
         if [ $? -eq 0 ]; then
             CONTAINER=$c
