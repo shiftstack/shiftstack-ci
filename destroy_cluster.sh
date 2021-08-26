@@ -63,26 +63,36 @@ if [[ $FORCE == true ]]; then
     fi
 
     openstack server list -c ID -f value --name $INFRA_ID | xargs --no-run-if-empty openstack server delete
-    openstack router remove subnet  $INFRA_ID-external-router $INFRA_ID-service
-    openstack router remove subnet  $INFRA_ID-external-router $INFRA_ID-nodes
+
+    openstack router remove subnet $INFRA_ID-external-router $INFRA_ID-service
+    openstack router remove subnet $INFRA_ID-external-router $INFRA_ID-nodes
+    # BYON
+    openstack router remove subnet $INFRA_ID-router $INFRA_ID-machines-subnet
+
     # delete interfaces from the router
     openstack network trunk list -c Name -f value | grep $INFRA_ID | xargs --no-run-if-empty openstack network trunk delete
     openstack port list --network $INFRA_ID-openshift -c ID -f value | xargs --no-run-if-empty openstack port delete
+    openstack port list --network $INFRA_ID-machines-network -c ID -f value | xargs --no-run-if-empty openstack port delete
 
-    # delete interfaces from the router
-    PORT=$(openstack router show $INFRA_ID-external-router -c interfaces_info -f value | cut -d '"' -f 12)
-    if [ -n "$PORT" ]; then
-	    openstack router remove port $INFRA_ID-external-router $PORT
-    fi
+    for suffix in external-router router; do
+      # delete interfaces from the router
+      PORT=$(openstack router show $INFRA_ID-$suffix -c interfaces_info -f value | cut -d '"' -f 12)
+      if [ -n "$PORT" ]; then
+              openstack router remove port $INFRA_ID-$suffix $PORT
+      fi
 
-    openstack router unset --external-gateway $INFRA_ID-external-router
-    openstack router delete $INFRA_ID-external-router
+      openstack router unset --external-gateway $INFRA_ID-$suffix
+      openstack router delete $INFRA_ID-$suffix
+    done
 
     # IPI network
     openstack network delete $INFRA_ID-openshift
 
     # UPI network
     openstack network delete $INFRA_ID-network
+
+    # BYON
+    openstack network delete $INFRA_ID-machines-network
 
     openstack security group delete $INFRA_ID-api
     openstack security group delete $INFRA_ID-master
