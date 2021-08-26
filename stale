@@ -18,9 +18,9 @@ print_help() {
 	echo '"resource_type" can be any openstack resource type.'
 	echo 'Resources are identified as stale if they were last updated more than 5 hours ago.'
 	echo
-	echo -u  Only print the ID and the timestamp of the last update
-	echo -n  Only print the ID and the resource name
-	echo -q  Only print the ID
+	echo '-u  Only print the ID and the timestamp of the last update'
+	echo '-n  Only print the ID and the resource name'
+	echo '-q  Only print the ID'
 	echo
 	echo 'Examples:'
 	echo "$0 port"
