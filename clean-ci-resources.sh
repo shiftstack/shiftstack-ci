@@ -47,8 +47,15 @@ report() {
 	done
 }
 
-for cluster_id in $(./list-clusters -ls); do
+leftover_clusters=$(./list-clusters -ls)
+
+for cluster_id in $leftover_clusters; do
 	time ./destroy_cluster.sh -i "$(echo "$cluster_id" | report cluster)"
+done
+
+# Try again, this time via openstack commands directly
+for cluster_id in $leftover_clusters; do
+	time ./destroy_cluster.sh --force -i "$(echo "$cluster_id" | report cluster)"
 done
 
 # Clean leftover containers
