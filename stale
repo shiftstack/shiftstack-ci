@@ -105,6 +105,15 @@ list_generic() {
 	done
 }
 
+list_keypair() {
+	for resource_id in $(openstack keypair list -f value -c Name); do
+		res="$(openstack keypair show -f json -c created_at -c Name "$resource_id")"
+		update_time="$(jq -r '.created_at' <<< "$res")"
+		name="$(jq -r '.name' <<< "$res")"
+		printf '%s %s %s\n' "$resource_id" "$update_time" "$name"
+	done
+}
+
 case $resource_type in
 	server)
 		list_server ;;
@@ -116,6 +125,8 @@ case $resource_type in
 		list_loadbalancer ;;
 	'security group')
 		list_security_group ;;
+	'keypair')
+		list_keypair ;;
 	'server group')
 		>&2 printf 'Creation date is not available for %s.' "$resource_type"
 		exit 3
