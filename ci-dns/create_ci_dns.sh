@@ -77,7 +77,7 @@ NAME=ci-dns
 
 opts=$(getopt -n "$0" -o "n:" --long "name:"  -- "$@")
 
-eval set --$opts
+eval set --"$opts"
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -101,5 +101,5 @@ openstack server create \
 	--security-group default \
 	--security-group ci-dns \
 	--config-drive=true \
-	--nic net-id=${ci_dns_net_id} \
-	${NAME}
+  --nic net-id="${ci_dns_net_id}" \
+	"${NAME}"

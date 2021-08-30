@@ -8,7 +8,7 @@ unknown_command() {
 }
 
 print_help() {
-	echo 'https://github.com/shiftstack/shiftstack-ci/stale'
+	echo 'https://github.com/shiftstack/shiftstack-ci/blob/main/stale.sh'
 	echo
 	echo 'Prints the IDs of the stale resources, with the timestamp of the last update and the resource name.'
 	echo

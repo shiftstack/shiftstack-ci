@@ -20,14 +20,6 @@ server:
 .PHONY: server
 
 shellcheck:
-	shellcheck \
-		./clean-ci-resources.sh \
-		./list-clusters \
-		./metrics.sh \
-		./pull-artifacts \
-		./refresh_rhcos.sh \
-		./report.sh \
-		./server.sh \
-		./stale
+	find . -type f -name "*.sh" | xargs --verbose --no-run-if-empty shellcheck
 
 .PHONY: shellcheck
