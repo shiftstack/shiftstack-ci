@@ -20,5 +20,14 @@ server:
 .PHONY: server
 
 shellcheck:
-	shellcheck ./clean-ci-resources.sh ./metrics.sh
+	shellcheck \
+		./clean-ci-resources.sh \
+		./list-clusters \
+		./metrics.sh \
+		./pull-artifacts \
+		./refresh_rhcos.sh \
+		./report.sh \
+		./server.sh \
+		./stale
+
 .PHONY: shellcheck

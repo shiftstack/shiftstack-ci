@@ -61,6 +61,7 @@ increment() {
 		tmp_metrics=$(<"$metrics_file")
 		search="\(${metric_name}\) \([0-9]\+\)"
 		replace="printf '%s %s' '\1' \"\$((\2+${increment}))\""
+		# shellcheck disable=SC2001
 		sed "s|${search}|${replace}|e" <<< "$tmp_metrics" > "$metrics_file"
 	fi
 }
