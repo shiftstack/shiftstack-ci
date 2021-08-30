@@ -165,5 +165,6 @@ if [ "$persistent" == 'yes' ]; then
 	print_cleanup_script
 else
 	>&2 echo "Server created. Press ENTER to tear down."
+	# shellcheck disable=SC2162,SC2034
 	read pause
 fi
