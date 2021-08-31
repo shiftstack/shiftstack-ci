@@ -40,6 +40,10 @@ check_quotas() {
         metric_inuse=$(echo "$line" | awk '{ print $2 }')
         metric_reserved=$(echo "$line" | awk '{ print $3 }')
         metric_limit=$(echo "$line" | awk '{ print $4 }')
+        if [[ "$metric_limit" -eq 0 ]]; then
+            echo "  No quotas set for ${metric_name}"
+            continue
+        fi
         if [[ "$metric_limit" -eq -1 ]]; then
             echo "  Unlimited quotas for ${metric_name}"
             continue
