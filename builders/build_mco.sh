@@ -1,3 +1,5 @@
+#!/bin/bash
+
 help() {
     echo "Build an MCO Image"
     echo ""
@@ -33,14 +35,14 @@ DEST_IMAGE="quay.io/$USERNAME/origin-release:$TAG"
 FROM_IMAGE="registry.ci.openshift.org/origin/release:4.2"
 MCO_IMAGE=quay.io/$USERNAME/machine-config-operator:$TAG
 
-pushd $GOPATH/src/github.com/openshift/machine-config-operator
-podman build --no-cache -t $MCO_IMAGE .
-podman push $MCO_IMAGE
+pushd "$GOPATH"/src/github.com/openshift/machine-config-operator || exit
+podman build --no-cache -t "$MCO_IMAGE" .
+podman push "$MCO_IMAGE"
 
 oc adm release new \
     --from-release="$FROM_IMAGE" \
     --to-image="$DEST_IMAGE" \
     --server https://api.ci.openshift.org \
     -n openshift \
-    machine-config-operator=$MCO_IMAGE
-popd
+    machine-config-operator="$MCO_IMAGE"
+popd || exit

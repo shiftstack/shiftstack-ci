@@ -15,12 +15,12 @@ help() {
     echo ""
 }
 
-: ${GOPATH:=${HOME}/go}
-: ${TAG:="capo"}
-: ${RELEASE:="4.7"}
-: ${OC_REGISTRY_AUTH_FILE:="config.json"}
-: ${OPENSTACK_RELEASE:="train"}
-: ${CAPO_DIR:=""}
+: "${GOPATH:=${HOME}/go}"
+: "${TAG:="capo"}"
+: "${RELEASE:="4.7"}"
+: "${OC_REGISTRY_AUTH_FILE:="config.json"}"
+: "${OPENSTACK_RELEASE:="train"}"
+: "${CAPO_DIR:=""}"
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -85,14 +85,14 @@ else
     echo "$CAPO_DIR will be used to build CAPO"
 fi
 
-pushd $CAPO_DIR
+pushd "$CAPO_DIR"
 REPOS_DIR=$(mktemp -d -t build-origin-XXXXXXXXXX)
-curl https://raw.githubusercontent.com/openshift/release/master/core-services/release-controller/_repos/ocp-$RELEASE-default.repo -o $REPOS_DIR/ocp-$RELEASE-default.repo
-curl https://github.com/openshift/shared-secrets/blob/master/mirror/ops-mirror.pem -o $REPOS_DIR/ops-mirror.pem
-curl https://raw.githubusercontent.com/openshift/installer/master/images/openstack/rdo-$OPENSTACK_RELEASE.repo -o $REPOS_DIR/openstack.repo
-podman build --no-cache -v $REPOS_DIR:/etc/yum.repos.d/:z -v $REPOS_DIR/ops-mirror.pem:/tmp/key/ops-mirror.pem:z -t $CAPO_IMAGE .
-rm -rf $REPOS_DIR
-podman push $CAPO_IMAGE
+curl "https://raw.githubusercontent.com/openshift/release/master/core-services/release-controller/_repos/ocp-$RELEASE-default.repo -o $REPOS_DIR/ocp-$RELEASE-default.repo"
+curl https://github.com/openshift/shared-secrets/blob/master/mirror/ops-mirror.pem -o "$REPOS_DIR/ops-mirror.pem"
+curl "https://raw.githubusercontent.com/openshift/installer/master/images/openstack/rdo-$OPENSTACK_RELEASE.repo" -o "$REPOS_DIR/openstack.repo"
+podman build --no-cache -v "$REPOS_DIR":/etc/yum.repos.d/:z -v "$REPOS_DIR"/ops-mirror.pem:/tmp/key/ops-mirror.pem:z -t "$CAPO_IMAGE" .
+rm -rf "$REPOS_DIR"
+podman push "$CAPO_IMAGE"
 popd
 
 echo "$CAPO_IMAGE has been uploaded"
@@ -103,14 +103,14 @@ oc adm release new \
     --registry-config="$OC_REGISTRY_AUTH_FILE" \
     --from-release="$FROM_IMAGE" \
     --server https://api.ci.openshift.org \
-    --to-image $DEST_IMAGE \
-    openstack-machine-controllers=$CAPO_IMAGE
+    --to-image "$DEST_IMAGE" \
+    openstack-machine-controllers="$CAPO_IMAGE"
 
 echo "Successfully pushed $DEST_IMAGE"
 
 echo "Testing release image"
-podman pull $DEST_IMAGE
-if ! podman run --rm $DEST_IMAGE image openstack-machine-controllers >/dev/null; then
+podman pull "$DEST_IMAGE"
+if ! podman run --rm "$DEST_IMAGE" image openstack-machine-controllers >/dev/null; then
     echo "$DEST_IMAGE is not usable, something went wrong, exiting ..."
     exit 1
 fi

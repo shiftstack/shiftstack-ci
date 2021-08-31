@@ -34,6 +34,6 @@ curl -L "${TERRAFORM_URL}" | "${FUNZIP}" >bin/terraform &&
 chmod +x bin/terraform
 
 go get -d github.com/terraform-providers/terraform-provider-openstack/
-cd "$(go env GOPATH)/src/github.com/terraform-providers/terraform-provider-openstack/"
+cd "$(go env GOPATH)/src/github.com/terraform-providers/terraform-provider-openstack/" || exit
 git checkout b1406b8e4894faad993aff786f0bb50bfec8e281
 go get github.com/terraform-providers/terraform-provider-openstack/

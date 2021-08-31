@@ -47,7 +47,7 @@ report() {
 	done
 }
 
-leftover_clusters=$(./list-clusters -ls)
+leftover_clusters=$(./list-clusters.sh -ls)
 
 for cluster_id in $leftover_clusters; do
 	time ./destroy_cluster.sh -i "$(echo "$cluster_id" | report cluster)"
@@ -60,13 +60,13 @@ done
 
 # Clean leftover containers
 openstack container list -f value -c Name \
-	| grep -vf <(./list-clusters -a) \
+	| grep -vf <(./list-clusters.sh -a) \
 	| report container \
 	| xargs --verbose --no-run-if-empty openstack container delete -r
 
 for resource in 'volume snapshot' 'volume' 'floating ip' 'security group' 'keypair'; do
 	if [[ ${resource} == 'volume' ]]; then
-	  for r in $(./stale -q "$resource"); do
+	  for r in $(./stale.sh -q "$resource"); do
 	    status=$(openstack "${resource}" show -c status -f value "${r}")
 		case "$status" in
 			# For Cinder volumes, deletable states are documented here:
@@ -82,5 +82,5 @@ for resource in 'volume snapshot' 'volume' 'floating ip' 'security group' 'keypa
 	  done
 	fi
 	# shellcheck disable=SC2086
-	./stale -q $resource | report $resource | xargs --verbose --no-run-if-empty openstack $resource delete
+	./stale.sh -q $resource | report $resource | xargs --verbose --no-run-if-empty openstack $resource delete
 done

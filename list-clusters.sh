@@ -10,7 +10,7 @@ unrecognised_command() {
 print_help() {
 	echo 'https://github.com/shiftstack/shiftstack-ci'
 	echo
-	echo 'list-clusters [ -a | -s ] [ -l ]'
+	echo 'list-clusters.sh [ -a | -s ] [ -l ]'
 	echo
 	echo 'Prints the IDs of the detected clusters, based on their Network.'
 	echo

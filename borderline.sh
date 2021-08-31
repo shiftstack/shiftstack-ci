@@ -10,8 +10,8 @@ help() {
     echo ""
 }
 
-: ${min_percentage:="15"}
-: ${failed:="0"}
+: "${min_percentage:="15"}"
+: "${failed:="0"}"
 project_id=$(openstack token issue -f value -c project_id)
 
 while [[ $# -gt 0 ]]; do
@@ -48,15 +48,15 @@ check_quotas() {
             echo "  Unlimited quotas for ${metric_name}"
             continue
         fi
-        ((metric_available=$metric_limit-$metric_reserved-$metric_inuse))
-        ((percentage_value=$metric_available*100/$metric_limit))
+        ((metric_available=metric_limit-metric_reserved-metric_inuse))
+        ((percentage_value=metric_available*100/metric_limit))
         if [[ "$percentage_value" -lt "$min_percentage" ]]; then
             echo "  WARNING: Only $percentage_value% of $metric_name are available"
             failed=1
         else
             echo "  Available resources for ${metric_name}: ${percentage_value}%"
         fi
-    done < <(openstack quota list --detail --$service --project ${project_id} -f value)
+    done < <(openstack quota list --detail --"$service" --project "${project_id}" -f value)
 }
 
 check_quotas compute
