@@ -50,7 +50,10 @@ check_quotas() {
         fi
         ((metric_available=metric_limit-metric_reserved-metric_inuse))
         ((percentage_value=metric_available*100/metric_limit))
-        if [[ "$percentage_value" -lt "$min_percentage" ]]; then
+        if [[ "$percentage_value" -eq 0 ]]; then
+            echo "  CRITICAL: No more resource available for ${metric_name}"
+            failed=1
+        elif [[ "$percentage_value" -lt "$min_percentage" ]]; then
             echo "  WARNING: Only $percentage_value% of $metric_name are available"
             failed=1
         else
