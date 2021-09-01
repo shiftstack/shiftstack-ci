@@ -15,7 +15,7 @@ ARTIFACT_DIR=clusters/${CLUSTER_NAME}
 
 opts=$(getopt -n "$0"  -o "fi:" --long "force,infra-id:"  -- "$@")
 
-eval set --"$opts"
+eval set --$opts
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
