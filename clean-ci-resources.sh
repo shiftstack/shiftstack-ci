@@ -16,8 +16,11 @@ case "$(openstack security group show -f value -c id default)" in
 	25b7cd46-495e-4862-a4a8-2222af553092)
 		>&2 echo 'Operating on Kuryr Cloud'
 		;;
-	1c12e21a-7208-49e3-a17b-7f7241906f61)
-		>&2 echo 'Operating on vh-mecha'
+	ca35156c-bb2b-4e38-9ef1-fa3651ce2bc5)
+		>&2 echo 'Operating on vh-mecha-central'
+		;;
+	f6fe9835-9a6f-4377-aafb-48aa9dd9177b)
+		>&2 echo 'Operating on vh-mecha-az0'
 		;;
 	*)
 		>&2 echo "Refusing to run on anything else than the CI tenant"
