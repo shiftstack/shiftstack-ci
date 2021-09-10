@@ -125,7 +125,7 @@ fi
 
 # Attaching FIP to ingress port to access the cluster from outside
 # check whether we have a free floating IP
-INGRESS_PORT=$(openstack port list --format value -c Name | awk "/${CLUSTER_NAME}.*-ingress-port/ {print}")
+INGRESS_PORT=$(openstack port list --format value -c Name | awk "/${CLUSTER_NAME}-.{5}-ingress-port/ {print}")
 if [ -n "$INGRESS_PORT" ]; then
   APPS_FLOATING_IP=$(openstack floating ip list --status DOWN --network "$OPENSTACK_EXTERNAL_NETWORK" --long --format value -c "Floating IP Address" -c Description | grep "${CLUSTER_NAME}" | awk 'NF<=1 && NR==1 {print}')
 
