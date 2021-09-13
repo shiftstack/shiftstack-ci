@@ -6,35 +6,28 @@ if [ -r "$CONFIG" ]; then
 	source "./${CONFIG}"
 fi
 
-case "$(openstack security group show -f value -c id default)" in
-	ac891596-df7f-4533-9205-62c8f3976f46)
-		>&2 echo 'Operating on MOC'
-		;;
-	1e7008c1-10f4-4d09-9d6e-d3de70b62eb6)
-		>&2 echo 'Operating on VEXXHOST'
-		;;
-	25b7cd46-495e-4862-a4a8-2222af553092)
-		>&2 echo 'Operating on Kuryr Cloud'
-		;;
-	ca35156c-bb2b-4e38-9ef1-fa3651ce2bc5)
-		>&2 echo 'Operating on vh-mecha-central'
-		;;
-	f6fe9835-9a6f-4377-aafb-48aa9dd9177b)
-		>&2 echo 'Operating on vh-mecha-az0'
-		;;
-	*)
-		>&2 echo "Refusing to run on anything else than the CI tenant"
-		exit 1
-esac
+for arg in "$@"; do
+  shift
+  case "$arg" in
+    "--delete-everything-older-than-5-hours") set -- "$@" "-f" ;;
+    *) set -- "$@" "$arg"
+  esac
+done
 
 declare resultfile='/dev/null'
+declare DELETE=0
 
-while getopts o: opt; do
+# shellcheck disable=SC2220
+while getopts :o:f opt; do
 	case "$opt" in
 		o) resultfile="$OPTARG" ;;
-		*) >&2 echo "Unknown flag: $opt"; exit 2 ;;
+		f) DELETE=1 ;;
 	esac
 done
+
+if [ $DELETE != 1 ]; then
+	echo "Refusing to run unless passing the --delete-everything-older-than-5-hours option"
+fi
 
 cat > "$resultfile" <<< '{}'
 
