@@ -67,7 +67,7 @@ check_quotas network
 
 if [[ "$failed" -eq 1 ]]; then
     echo "Some resources have less than ${min_percentage}% available, actions should be taken!"
-    exit 1
+    exit 11
 fi
 
 echo "No issue found, all resources have at least ${min_percentage}% of the total available"
