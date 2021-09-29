@@ -204,6 +204,7 @@ openstack floating ip set --port "$lb_vip_id" "$fip_id"
 
 if [ "$os_user" != '' ]; then
 	echo "Testing connectivity from the instance ${name}"
+	sleep 20
 	if ! ssh -o ConnectTimeout=30 -o StrictHostKeyChecking=no "$os_user"@"$fip_address" ping -c 1 1.1.1.1; then
 		echo "Error when running a ping from the instance..."
 		exit 1
