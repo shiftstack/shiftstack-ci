@@ -110,20 +110,8 @@ cleanup() {
 	if [ -n "$sg_id" ]; then
 		openstack security group delete "$sg_id" || >&2 echo "Failed to delete security group $sg_id"
 	fi
-	if [ -n "$lb_member_id" ]; then
-		openstack loadbalancer member delete "$lb_pool_id" "$lb_member_id" || >&2 echo "Failed to delete loadbalancer member $lb_member_id from pool $lb_pool_id"
-	fi
-	if [ -n "$lb_pool_id" ]; then
-		openstack loadbalancer pool delete "$lb_pool_id" || >&2 echo "Failed to delete loadbalancer pool $lb_pool_id"
-	fi
-	if [ -n "$lb_listener_id" ]; then
-		openstack loadbalancer listener delete "$lb_listener_id" || >&2 echo "Failed to delete loadbalancer listener $lb_listener_id"
-	fi
 	if [ -n "$lb_id" ]; then
-		openstack loadbalancer delete "$lb_id" || >&2 echo "Failed to delete loadbalancer $lb_id"
-	fi
-	if [ -n "$subnet_id" ]; then
-		openstack subnet delete "$subnet_id" || >&2 echo "Failed to delete subnet $subnet_id"
+		openstack loadbalancer delete --cascade --wait "$lb_id" || >&2 echo "Failed to delete loadbalancer $lb_id"
 	fi
 	if [ -n "$network_id" ]; then
 		openstack network delete "$network_id" || >&2 echo "Failed to delete network $network_id"
@@ -143,11 +131,7 @@ openstack port delete "$port_id" || >&2 echo "Failed to delete port $port_id"
 openstack router remove subnet "$router_id" "$subnet_id" || >&2 echo 'Failed to remove subnet from router'
 openstack router delete "$router_id" || >&2 echo "Failed to delete router $router_id"
 openstack security group delete "$sg_id" || >&2 echo "Failed to delete security group $sg_id"
-openstack loadbalancer member delete "$lb_pool_id" "$lb_member_id" || >&2 echo "Failed to delete loadbalancer member $lb_member_id from pool $lb_pool_id"
-openstack loadbalancer pool delete "$lb_pool_id" || >&2 echo "Failed to delete loadbalancer pool $lb_pool_id"
-openstack loadbalancer listener delete "$lb_listener_id" || >&2 echo "Failed to delete loadbalancer listener $lb_listener_id"
-openstack loadbalancer delete "$lb_id" || >&2 echo "Failed to delete loadbalancer $lb_id"
-openstack subnet delete "$subnet_id" || >&2 echo "Failed to delete subnet $subnet_id"
+openstack loadbalancer delete --cascade --wait "$lb_id" || >&2 echo "Failed to delete loadbalancer $lb_id"
 openstack network delete "$network_id" || >&2 echo "Failed to delete network $network_id"
 EOF
 
@@ -208,6 +192,7 @@ lb_pool_id="$(openstack loadbalancer pool create --name "$name" -f value -c id -
 >&2 echo "Created loadbalancer pool ${lb_pool_id}"
 
 lb_member_id="$(openstack loadbalancer member create -f value -c id --subnet-id "$subnet_id" --address "$server_ip" --protocol-port 22 "$lb_pool_id")"
+>&2 echo "Created loadbalancer member ${lb_member_id}"
 
 fip_id="$(openstack floating ip create -f value -c id \
 		--description "$name" \
