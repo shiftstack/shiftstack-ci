@@ -182,16 +182,16 @@ server_id="$(echo $server_id | tr -d '\r')"
 >&2 echo "Created server ${server_id}"
 server_ip="$(openstack server show "$server_id" -c addresses -f json | grep -Pom 1 '[0-9.]{7,15}')"
 
-lb_id="$(openstack loadbalancer create --name "$name" --provider ovn -f value -c id --vip-subnet-id "$subnet_id")"
+lb_id="$(openstack loadbalancer create --wait --name "$name" --provider ovn -f value -c id --vip-subnet-id "$subnet_id")"
 >&2 echo "Created loadbalancer ${lb_id}"
 
-lb_listener_id="$(openstack loadbalancer listener create --name "$name" -f value -c id --protocol TCP --protocol-port 22 "$lb_id")"
+lb_listener_id="$(openstack loadbalancer listener create --wait --name "$name" -f value -c id --protocol TCP --protocol-port 22 "$lb_id")"
 >&2 echo "Created loadbalancer listener ${lb_listener_id}"
 
-lb_pool_id="$(openstack loadbalancer pool create --name "$name" -f value -c id --lb-algorithm SOURCE_IP_PORT --listener "$lb_listener_id" --protocol TCP)"
+lb_pool_id="$(openstack loadbalancer pool create --wait --name "$name" -f value -c id --lb-algorithm SOURCE_IP_PORT --listener "$lb_listener_id" --protocol TCP)"
 >&2 echo "Created loadbalancer pool ${lb_pool_id}"
 
-lb_member_id="$(openstack loadbalancer member create -f value -c id --subnet-id "$subnet_id" --address "$server_ip" --protocol-port 22 "$lb_pool_id")"
+lb_member_id="$(openstack loadbalancer member create --wait -f value -c id --subnet-id "$subnet_id" --address "$server_ip" --protocol-port 22 "$lb_pool_id")"
 >&2 echo "Created loadbalancer member ${lb_member_id}"
 
 fip_id="$(openstack floating ip create -f value -c id \
