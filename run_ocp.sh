@@ -16,8 +16,7 @@ set -x
 declare -r installer="${OPENSHIFT_INSTALLER:-$GOPATH/src/github.com/openshift/installer/bin/openshift-install}"
 
 # check whether we have a free floating IP
-FLOATING_IP=$(openstack floating ip list --status DOWN --network "$OPENSTACK_EXTERNAL_NETWORK" --long --format value -c "Floating IP Address" -c Description | grep "${CLUSTER_NAME}" | sed 's/ .*//g')
-FLOATING_IP=$(echo "$FLOATING_IP" | cut -d ' ' -f1)
+FLOATING_IP=$(openstack floating ip list --status DOWN --network "$OPENSTACK_EXTERNAL_NETWORK" --long --format value -c "Floating IP Address" -c Description | grep "${CLUSTER_NAME}-api" | head -n 1 | sed 's/ .*//g' | cut -d ' ' -f1)
 
 # create new floating ip if doesn't exist
 if [ -z "$FLOATING_IP" ]; then
