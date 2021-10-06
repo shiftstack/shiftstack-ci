@@ -87,7 +87,7 @@ for resource in 'volume snapshot' 'volume' 'floating ip' 'security group' 'keypa
 			case "$status" in
 				ERROR)
 					# shellcheck disable=SC2086
-					report $resource | xargs --verbose openstack $resource delete --cascade
+					echo "$r" | report $resource | xargs --verbose openstack $resource delete --cascade
 					;;
 				*)
 					;;
