@@ -27,6 +27,7 @@ done
 
 if [ $DELETE != 1 ]; then
 	echo "Refusing to run unless passing the --delete-everything-older-than-5-hours option"
+	exit 5
 fi
 
 cat > "$resultfile" <<< '{}'
