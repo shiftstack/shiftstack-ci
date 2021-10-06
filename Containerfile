@@ -1,7 +1,5 @@
 FROM registry.fedoraproject.org/fedora:34
 
-COPY ./ ./
-
 RUN ./hack/dnf_safe update -y \
 	&& ./hack/dnf_safe install -y \
 		ShellCheck \
@@ -12,3 +10,5 @@ RUN ./hack/dnf_safe update -y \
 	&& dnf clean all
 
 WORKDIR /src
+
+COPY ./ ./
