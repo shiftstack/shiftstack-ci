@@ -91,30 +91,63 @@ cleanup() {
 	>&2 echo
 	>&2 echo
 	>&2 echo 'Starting the cleanup...'
+	CLEANUP_CODE=0
 	if [ -n "$fip_id" ]; then
-		openstack floating ip delete "$fip_id" || >&2 echo "Failed to delete FIP $fip_id"
+		if ! openstack floating ip delete "$fip_id"; then
+			>&2 echo "Failed to delete FIP $fip_id"
+			CLEANUP_CODE=1
+		fi
 	fi
 	if [ -n "$server_id" ]; then
-		openstack server delete --wait "$server_id" || >&2 echo "Failed to delete server $server_id"
+		if ! openstack server delete --wait "$server_id"; then
+			>&2 echo "Failed to delete server $server_id"
+			CLEANUP_CODE=1
+		fi
 	fi
 	if [ -n "$vol_id" ]; then
-		openstack volume delete "$vol_id" || >&2 echo "Failed to delete volume $vol_id"
+		if ! openstack volume delete "$vol_id"; then
+			>&2 echo "Failed to delete volume $vol_id"
+			CLEANUP_CODE=1
+		fi
 	fi
 	if [ -n "$port_id" ]; then
-		openstack port delete "$port_id" || >&2 echo "Failed to delete port $port_id"
+		if ! openstack port delete "$port_id"; then
+			>&2 echo "Failed to delete port $port_id"
+			CLEANUP_CODE=1
+		fi
 	fi
 	if [ -n "$router_id" ]; then
-		openstack router remove subnet "$router_id" "$subnet_id" || >&2 echo 'Failed to remove subnet from router'
-		openstack router delete "$router_id" || >&2 echo "Failed to delete router $router_id"
+		if ! openstack router remove subnet "$router_id" "$subnet_id"; then
+			>&2 echo 'Failed to remove subnet from router'
+			CLEANUP_CODE=1
+		fi
+		if ! openstack router delete "$router_id"; then
+			>&2 echo "Failed to delete router $router_id"
+			CLEANUP_CODE=1
+		fi
 	fi
 	if [ -n "$sg_id" ]; then
-		openstack security group delete "$sg_id" || >&2 echo "Failed to delete security group $sg_id"
+		if ! openstack security group delete "$sg_id"; then
+			>&2 echo "Failed to delete security group $sg_id"
+			CLEANUP_CODE=1
+		fi
 	fi
 	if [ -n "$lb_id" ]; then
-		openstack loadbalancer delete --cascade --wait "$lb_id" || >&2 echo "Failed to delete loadbalancer $lb_id"
+		if ! openstack loadbalancer delete --cascade --wait "$lb_id"; then
+			>&2 echo "Failed to delete loadbalancer $lb_id"
+			CLEANUP_CODE=1
+		fi
 	fi
 	if [ -n "$network_id" ]; then
-		openstack network delete "$network_id" || >&2 echo "Failed to delete network $network_id"
+		if ! openstack network delete "$network_id"; then
+			>&2 echo "Failed to delete network $network_id"
+			CLEANUP_CODE=1
+		fi
+	fi
+
+	if [ "$CLEANUP_CODE" == 1 ]; then
+		>&2 echo 'Cleanup finished with errors'
+		exit 1
 	fi
 	>&2 echo 'Cleanup done.'
 }
