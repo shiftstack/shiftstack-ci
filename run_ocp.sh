@@ -126,7 +126,7 @@ fi
 # check whether we have a free floating IP
 INGRESS_PORT=$(openstack port list --format value -c Name | awk "/${CLUSTER_NAME}-.{5}-ingress-port/ {print}")
 if [ -n "$INGRESS_PORT" ]; then
-  APPS_FLOATING_IP=$(openstack floating ip list --status DOWN --network "$OPENSTACK_EXTERNAL_NETWORK" --long --format value -c "Floating IP Address" -c Description | grep "${CLUSTER_NAME}" | awk 'NF<=1 && NR==1 {print}')
+  APPS_FLOATING_IP=$(openstack floating ip list --status DOWN --network "$OPENSTACK_EXTERNAL_NETWORK" --long --format value -c "Floating IP Address" -c Description | grep "${CLUSTER_NAME}-apps" | head -n 1 | sed 's/ .*//g' | cut -d ' ' -f1)
 
   # create new floating ip if doesn't exist
   if [ -z "$APPS_FLOATING_IP" ]; then
