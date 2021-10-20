@@ -16,6 +16,7 @@ done
 
 declare resultfile='/dev/null'
 declare DELETE=0
+declare CLEANUP_RC=0
 
 # shellcheck disable=SC2220
 while getopts :o:f opt; do
@@ -46,13 +47,16 @@ report() {
 
 leftover_clusters=$(./list-clusters.sh -ls)
 
+set +e
 for cluster_id in $leftover_clusters; do
 	time ./destroy_cluster.sh -i "$(echo "$cluster_id" | report cluster)"
+	CLEANUP_RC=$((CLEANUP_RC + $?))
 done
 
 # Try again, this time via openstack commands directly
 for cluster_id in $leftover_clusters; do
 	time ./destroy_cluster.sh --force -i "$(echo "$cluster_id" | report cluster)"
+	CLEANUP_RC=$((CLEANUP_RC + $?))
 done
 
 # Clean leftover containers
@@ -60,6 +64,7 @@ openstack container list -f value -c Name \
 	| grep -vf <(./list-clusters.sh -a) \
 	| report container \
 	| xargs --verbose --no-run-if-empty openstack container delete -r
+CLEANUP_RC=$((CLEANUP_RC + $?))
 
 for resource in 'volume snapshot' 'volume' 'floating ip' 'security group' 'keypair' 'loadbalancer'; do
 	case $resource in
@@ -99,4 +104,10 @@ for resource in 'volume snapshot' 'volume' 'floating ip' 'security group' 'keypa
 			./stale.sh -q $resource | report $resource | xargs --verbose --no-run-if-empty openstack $resource delete
 			;;
 	esac
+	CLEANUP_RC=$((CLEANUP_RC + $?))
 done
+set -e
+if [ $CLEANUP_RC != 0 ]; then
+	echo "$CLEANUP_RC failure(s) was/were found during cleanup, check the logs for details"
+	exit 1
+fi
