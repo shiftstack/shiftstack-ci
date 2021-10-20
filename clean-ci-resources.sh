@@ -16,7 +16,7 @@ done
 
 declare resultfile='/dev/null'
 declare DELETE=0
-declare CLEANUP_RC=0
+declare CLEANUP_FAILURES=0
 
 # shellcheck disable=SC2220
 while getopts :o:f opt; do
@@ -50,13 +50,19 @@ leftover_clusters=$(./list-clusters.sh -ls)
 set +e
 for cluster_id in $leftover_clusters; do
 	time ./destroy_cluster.sh -i "$(echo "$cluster_id" | report cluster)"
-	CLEANUP_RC=$((CLEANUP_RC + $?))
+	# shellcheck disable=SC2181
+	if [ $? != 0 ]; then
+		CLEANUP_FAILURES=$((CLEANUP_FAILURES + 1))
+	fi
 done
 
 # Try again, this time via openstack commands directly
 for cluster_id in $leftover_clusters; do
 	time ./destroy_cluster.sh --force -i "$(echo "$cluster_id" | report cluster)"
-	CLEANUP_RC=$((CLEANUP_RC + $?))
+	# shellcheck disable=SC2181
+	if [ $? != 0 ]; then
+		CLEANUP_FAILURES=$((CLEANUP_FAILURES + 1))
+	fi
 done
 
 # Clean leftover containers
@@ -64,7 +70,10 @@ openstack container list -f value -c Name \
 	| grep -vf <(./list-clusters.sh -a) \
 	| report container \
 	| xargs --verbose --no-run-if-empty openstack container delete -r
-CLEANUP_RC=$((CLEANUP_RC + $?))
+# shellcheck disable=SC2181
+if [ $? != 0 ]; then
+	CLEANUP_FAILURES=$((CLEANUP_FAILURES + 1))
+fi
 
 for resource in 'volume snapshot' 'volume' 'floating ip' 'security group' 'keypair' 'loadbalancer'; do
 	case $resource in
@@ -104,10 +113,14 @@ for resource in 'volume snapshot' 'volume' 'floating ip' 'security group' 'keypa
 			./stale.sh -q $resource | report $resource | xargs --verbose --no-run-if-empty openstack $resource delete
 			;;
 	esac
-	CLEANUP_RC=$((CLEANUP_RC + $?))
+	# shellcheck disable=SC2181
+	if [ $? != 0 ]; then
+		CLEANUP_FAILURES=$((CLEANUP_FAILURES + 1))
+	fi
 done
 set -e
-if [ $CLEANUP_RC != 0 ]; then
-	echo "$CLEANUP_RC failure(s) was/were found during cleanup, check the logs for details"
+if [ $CLEANUP_FAILURES != 0 ]; then
+	echo "$CLEANUP_FAILURES failure(s) was/were found during cleanup, check the logs for details"
 	exit 1
 fi
+exit 0
