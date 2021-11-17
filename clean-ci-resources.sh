@@ -75,7 +75,8 @@ if [ $? != 0 ]; then
 	CLEANUP_FAILURES=$((CLEANUP_FAILURES + 1))
 fi
 
-for resource in 'volume snapshot' 'volume' 'floating ip' 'security group' 'keypair' 'loadbalancer'; do
+# Remaining resources. Order matters.
+for resource in 'server' 'router' 'subnet' 'network' 'volume snapshot' 'volume' 'floating ip' 'security group' 'keypair' 'loadbalancer'; do
 	case $resource in
 		volume)
 			for r in $(./stale.sh -q "$resource"); do
@@ -106,6 +107,16 @@ for resource in 'volume snapshot' 'volume' 'floating ip' 'security group' 'keypa
 				*)
 					;;
 			esac
+			done
+			;;
+		router)
+		  for r in $(./stale.sh -q "$resource"); do
+			subnets=$(openstack router show "$r" -c interfaces_info -f value | python -c "import sys; interfaces=eval(sys.stdin.read()); [print(i['subnet_id']) for i in interfaces]")
+			for subnet in $subnets; do
+			  openstack router remove subnet "$r" "$subnet"
+			done
+			# shellcheck disable=SC2086
+			echo "$r" | report $resource | xargs --verbose openstack $resource delete
 			done
 			;;
 		*)
