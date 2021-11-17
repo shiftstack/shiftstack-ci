@@ -59,6 +59,14 @@ for network in $(openstack network list -c Name -f value); do
 		# UPI
 		CLUSTER_ID="${CLUSTER_ID%-network}"
 
+		if [[ $network = *-*-byon* ]] || [[ $network = *-*-proxy* ]]; then
+			# Find the real cluster ID for BYON
+			CLUSTER_ID="${CLUSTER_ID%-proxy-bastion}"
+			CLUSTER_ID="${CLUSTER_ID%-proxy-machines}"
+			CLUSTER_ID="${CLUSTER_ID%-byon-machines}"
+			CLUSTER_ID="$(openstack security group list -c Tags | grep "$CLUSTER_ID" | awk 'match($0, /openshiftClusterID=(\w+-\w+-\w+)/,m) {print m[1]}' | sort |uniq)"
+		fi
+
 		case "$filter" in
 			'active')
 				CREATION_TIME=$(openstack network show "$network" -c created_at -f value)
