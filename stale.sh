@@ -105,6 +105,31 @@ list_generic() {
 	done
 }
 
+list_network() {
+	for resource_id in $(openstack network list -f value -c ID); do
+		# For networks we look at creation time, since removing a subnet updates the network
+		res="$(openstack network show -f json -c created_at -c name "$resource_id")"
+		creation_time="$(jq -r '.created_at' <<< "$res")"
+		name="$(jq -r '.name' <<< "$res")"
+		if [[ "$name" = *"hostonly"* ]] || [[ "$name" = *"external"* ]]; then
+			continue
+		fi
+		printf '%s %s %s\n' "$resource_id" "$creation_time" "$name"
+	done
+}
+
+list_subnet() {
+	for resource_id in $(openstack subnet list -f value -c ID); do
+		res="$(openstack subnet show -f json -c updated_at -c name "$resource_id")"
+		update_time="$(jq -r '.updated_at' <<< "$res")"
+		name="$(jq -r '.name' <<< "$res")"
+		if [[ "$name" = *"hostonly"* ]]; then
+			continue
+		fi
+		printf '%s %s %s\n' "$resource_id" "$update_time" "$name"
+	done
+}
+
 list_keypair() {
 	for resource_id in $(openstack keypair list -f value -c Name); do
 		res="$(openstack keypair show -f json -c created_at -c Name "$resource_id")"
@@ -119,8 +144,12 @@ case $resource_type in
 		list_server ;;
 	port)
 		list_port ;;
-	'network'|'network trunk'|'subnet'|'floating ip'|'volume'|'volume snapshot')
+	'router'|'network trunk'|'floating ip'|'volume'|'volume snapshot')
 		list_generic "$resource_type" ;;
+	'network')
+		list_network;;
+	'subnet')
+		list_subnet;;
 	'loadbalancer')
 		list_loadbalancer ;;
 	'security group')
