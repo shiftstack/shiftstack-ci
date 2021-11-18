@@ -76,7 +76,7 @@ if [ $? != 0 ]; then
 fi
 
 # Remaining resources. Order matters.
-for resource in 'server' 'router' 'subnet' 'network' 'volume snapshot' 'volume' 'floating ip' 'security group' 'keypair' 'loadbalancer'; do
+for resource in 'loadbalancer' 'server' 'router' 'subnet' 'network' 'volume snapshot' 'volume' 'floating ip' 'security group' 'keypair'; do
 	case $resource in
 		volume)
 			for r in $(./stale.sh -q "$resource"); do
