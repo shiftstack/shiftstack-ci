@@ -76,12 +76,9 @@ if [[ ${OPENSTACK_WORKER_VOLUME_TYPE} != "" ]]; then
 fi
 
 if [ ! -f "${ARTIFACT_DIR}"/install-config.yaml ]; then
-    CLUSTER_ID=$(uuidgen --random)
-    export CLUSTER_ID
     cat > "${ARTIFACT_DIR}"/install-config.yaml << EOF
 apiVersion: v1
 baseDomain: ${BASE_DOMAIN}
-clusterID:  ${CLUSTER_ID}
 compute:
 - name: worker
   platform:
