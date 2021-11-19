@@ -39,11 +39,21 @@ else
 fi
 
 RHCOS_VERSIONS_FILE="$(mktemp)"
-curl --silent -o "$RHCOS_VERSIONS_FILE" "https://raw.githubusercontent.com/openshift/installer/${REAL_BRANCH_NAME}/data/data/rhcos.json"
+if [[ "$BRANCH" = "4\.." ]]; then
+    FILE_URL="https://raw.githubusercontent.com/openshift/installer/${REAL_BRANCH_NAME}/data/data/rhcos.json"
+    curl --silent -o "$RHCOS_VERSIONS_FILE" "$FILE_URL"
+    IMAGE_SHA="$(jq --raw-output '.images.openstack."uncompressed-sha256"' "$RHCOS_VERSIONS_FILE")"
+    IMAGE_URL="$(jq --raw-output '.baseURI + .images.openstack.path' "$RHCOS_VERSIONS_FILE")"
+    IMAGE_VERSION="$(jq --raw-output '."ostree-version"' "$RHCOS_VERSIONS_FILE")"
+else
+    FILE_URL="https://raw.githubusercontent.com/openshift/installer/${REAL_BRANCH_NAME}/data/data/coreos/rhcos.json"
+    curl --silent -o "$RHCOS_VERSIONS_FILE" "$FILE_URL"
+    IMAGE_SHA="$(jq --raw-output '.architectures.x86_64.artifacts.openstack.formats."qcow2.gz".disk."uncompressed-sha256"' "$RHCOS_VERSIONS_FILE")"
+    IMAGE_URL="$(jq --raw-output '.architectures.x86_64.artifacts.openstack.formats."qcow2.gz".disk.location' "$RHCOS_VERSIONS_FILE")"
+    IMAGE_VERSION="$(jq --raw-output '.architectures.x86_64.artifacts.openstack.release' "$RHCOS_VERSIONS_FILE")"
+fi
 
-IMAGE_SHA="$(jq --raw-output '.images.openstack."uncompressed-sha256"' "$RHCOS_VERSIONS_FILE")"
-IMAGE_URL="$(jq --raw-output '.baseURI + .images.openstack.path' "$RHCOS_VERSIONS_FILE")"
-IMAGE_VERSION="$(jq --raw-output '."ostree-version"' "$RHCOS_VERSIONS_FILE")"
+
 
 current_image_version="$(mktemp)"
 openstack image show -c properties -f json "$IMAGE_NAME" > "$current_image_version" || true
