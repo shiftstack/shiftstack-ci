@@ -111,7 +111,7 @@ list_network() {
 		res="$(openstack network show -f json -c created_at -c name "$resource_id")"
 		creation_time="$(jq -r '.created_at' <<< "$res")"
 		name="$(jq -r '.name' <<< "$res")"
-		if [[ "$name" = *"hostonly"* ]] || [[ "$name" = *"external"* ]] || [[ "$name" = *"sahara-access"* ]]; then
+		if [[ "$name" = *"hostonly"* ]] || [[ "$name" = *"external"* ]] || [[ "$name" = *"sahara-access"* ]] || [[ "$name" = *"public"* ]]; then
 			continue
 		fi
 		printf '%s %s %s\n' "$resource_id" "$creation_time" "$name"
