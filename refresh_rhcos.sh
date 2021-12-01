@@ -39,7 +39,7 @@ else
 fi
 
 RHCOS_VERSIONS_FILE="$(mktemp)"
-if [[ "$BRANCH" = "4\.." ]]; then
+if [[ "$BRANCH" =~ ^4\..$ ]]; then
     FILE_URL="https://raw.githubusercontent.com/openshift/installer/${REAL_BRANCH_NAME}/data/data/rhcos.json"
     curl --silent -o "$RHCOS_VERSIONS_FILE" "$FILE_URL"
     IMAGE_SHA="$(jq --raw-output '.images.openstack."uncompressed-sha256"' "$RHCOS_VERSIONS_FILE")"
