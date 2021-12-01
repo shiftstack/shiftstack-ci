@@ -7,6 +7,12 @@ export BASE_DOMAIN=shiftstack.test
 export PULL_SECRET='{"auths": { "quay.io": { "auth": "xxx", "email": "" }}}'
 export SSH_PUB_KEY="`cat $HOME/.ssh/id_rsa.pub`"
 
+# If OPENSHIFT_RELEASE is defined, pulls a release image and optionally its
+# installer.
+# In all cases extracts OPENSHIFT_RELEASE_{MAJOR,MINOR} from the release to be
+# installed
+. release_defaults.sh
+
 export MASTER_COUNT=3
 export WORKER_COUNT=3
 
