@@ -6,3 +6,5 @@
 
 # ignore cloud credentials
 /bot/cloud-credentials.json
+
+/tmp
