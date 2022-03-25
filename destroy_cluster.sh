@@ -8,7 +8,7 @@
 CONFIG=${CONFIG:-cluster_config.sh}
 if [ -r "$CONFIG" ]; then
   # shellcheck disable=SC1090
-  source ./"${CONFIG}"
+  source "${CONFIG}"
 fi
 
 ARTIFACT_DIR=clusters/${CLUSTER_NAME}
