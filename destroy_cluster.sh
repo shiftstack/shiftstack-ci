@@ -106,7 +106,10 @@ if [[ $FORCE == true ]]; then
     fi
 else
     echo Destroying cluster using openshift-install
-    "$installer" --log-level=debug destroy cluster --dir "${TMP_DIR:-$ARTIFACT_DIR}"
+    timeout 900 "$installer" --log-level=debug destroy cluster --dir "${TMP_DIR:-$ARTIFACT_DIR}"
+    if [ $? -eq "124" ]; then
+        echo "Timeout to destroy cluster after 15 min"
+    fi
 fi
 
 if [ -n "$TMP_DIR" ]; then
