@@ -100,7 +100,7 @@ for resource in 'loadbalancer' 'server' 'router' 'subnet' 'network' 'volume snap
 		  for r in $(./stale.sh -q "$resource"); do
 			status=$(openstack "${resource}" show -c provisioning_status -f value "${r}")
 			case "$status" in
-				ERROR)
+				ACTIVE|ERROR)
 					# shellcheck disable=SC2086
 					echo "$r" | report $resource | xargs --verbose openstack $resource delete --cascade
 					;;
