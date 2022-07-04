@@ -26,6 +26,9 @@ yq --yaml-output '.
 	# Replace the old version in release images (.releases.{initial,latest}.{prerelease,candidate}.version)
 	| ( .releases[][] | select(.version == "'"${OLD_VERSION}"'") | .version ) |= "'"${NEW_VERSION}"'"
 
+	# Ensure that the release stream is set to "ci"
+	| ( .releases[][] | select(.stream == "nightly") | .stream ) |= "ci"
+
 	# Replace the version in the footer generated metadata, just to be on the safe side
 	# (although it will probably be rewritten when running `make update`
 	| .zz_generated_metadata.variant="periodic-'"${NEW_VERSION}"'"
@@ -58,6 +61,9 @@ yq --yaml-output '.
 
 # Set all intervals to 72h for the branch that is not the newest any more
 yq --yaml-output --in-place '.
+	# Set the release stream to "nightly" to reduce noise on maintenance branches
+	| ( .releases[][] | select(.stream == "ci") | .stream ) |= "nightly"
+
 	# Set a conveniently long interval to all tests in the old periodics
 	| .tests[].interval |= "72h"
 
