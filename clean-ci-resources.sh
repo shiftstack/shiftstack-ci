@@ -68,6 +68,7 @@ done
 # Clean leftover containers
 openstack container list -f value -c Name \
 	| grep -vf <(./list-clusters.sh -a) \
+	| grep -v 'shiftstack-metrics' \
 	| report container \
 	| xargs --verbose --no-run-if-empty openstack container delete -r
 # shellcheck disable=SC2181
