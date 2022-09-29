@@ -111,7 +111,7 @@ list_network() {
 		res="$(openstack network show -f json -c created_at -c name "$resource_id")"
 		creation_time="$(jq -r '.created_at' <<< "$res")"
 		name="$(jq -r '.name' <<< "$res")"
-		if [[ "$name" = *"hostonly"* ]] || [[ "$name" = *"external"* ]] || [[ "$name" = *"sahara-access"* ]] || [[ "$name" = *"mellanox"* ]] || [[ "$name" = *"intel"* ]] || [[ "$name" = *"public"* ]]; then
+		if [[ "$name" = *"hostonly"* ]] || [[ "$name" = *"external"* ]] || [[ "$name" = *"sahara-access"* ]] || [[ "$name" = *"mellanox"* ]] || [[ "$name" = *"intel"* ]] || [[ "$name" = *"public"* ]] || [[ "$name" = *"slaac"* ]]; then
 			continue
 		fi
 		printf '%s %s %s\n' "$resource_id" "$creation_time" "$name"
@@ -123,7 +123,7 @@ list_subnet() {
 		res="$(openstack subnet show -f json -c updated_at -c name "$resource_id")"
 		update_time="$(jq -r '.updated_at' <<< "$res")"
 		name="$(jq -r '.name' <<< "$res")"
-		if [[ "$name" = *"hostonly"* ]] || [[ "$name" = *"external"* ]] || [[ "$name" = *"public"* ]] || [[ "$name" = *"mellanox"* ]] || [[ "$name" = *"intel"* ]]; then
+		if [[ "$name" = *"hostonly"* ]] || [[ "$name" = *"external"* ]] || [[ "$name" = *"public"* ]] || [[ "$name" = *"mellanox"* ]] || [[ "$name" = *"intel"* ]] || [[ "$name" = *"slaac"* ]]; then
 			continue
 		fi
 		printf '%s %s %s\n' "$resource_id" "$update_time" "$name"
