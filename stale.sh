@@ -139,6 +139,24 @@ list_keypair() {
 	done
 }
 
+list_image() {
+	for resource_id in $(openstack image list -f value -c ID); do
+		res="$(openstack image show -f json -c updated_at -c name "$resource_id")"
+		update_time="$(jq -r '.updated_at' <<< "$res")"
+		name="$(jq -r '.name' <<< "$res")"
+		# Match images based on known patterns:
+		# IPI bootstrap payload -- .{8}-.{5}-.{5}-ignition
+		# IPI RHCOS image       -- .{8}-.{5}-.{5}-rhcos
+		# UPI bootstrap payload -- bootstrap-ign-.{8}-.{5}-.{5}
+		# UPI RHCOS image       -- rhcos-.{8}-.{5}
+		if [[ "$name" =~ .{8}-.{5}-.{5}-ignition ]] || [[ "$name" =~ .{8}-.{5}-.{5}-rhcos ]] || [[ "$name" =~ bootstrap-ign-.{8}-.{5}-.{5} ]] || [[ "$name" =~ rhcos-.{8}-.{5} ]]; then
+			printf '%s %s %s\n' "$resource_id" "$update_time" "$name"
+		else
+			continue
+		fi
+	done
+}
+
 case $resource_type in
 	server)
 		list_server ;;
@@ -156,6 +174,8 @@ case $resource_type in
 		list_security_group ;;
 	'keypair')
 		list_keypair ;;
+	'image')
+		list_image ;;
 	'server group')
 		>&2 printf 'Creation date is not available for %s.' "$resource_type"
 		exit 3
