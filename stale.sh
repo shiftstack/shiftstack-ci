@@ -53,6 +53,11 @@ else
 fi
 shift $((OPTIND - 1))
 
+if [[ $# -eq 0 ]]; then
+	print_help
+	exit
+fi
+
 declare -r resource_type="$*"
 
 declare valid_limit
