@@ -162,13 +162,27 @@ list_image() {
 	done
 }
 
+list_router() {
+	for resource_id in $(openstack router list -f value -c ID); do
+		res="$(openstack router show -f json -c updated_at -c name "$resource_id")"
+		update_time="$(jq -r '.updated_at' <<< "$res")"
+		name="$(jq -r '.name' <<< "$res")"
+		if [ "$name" == "dualstack" ]; then
+			continue
+		fi
+		printf '%s %s %s\n' "$resource_id" "$update_time" "$name"
+	done
+}
+
 case $resource_type in
 	server)
 		list_server ;;
 	port)
 		list_port ;;
-	'router'|'network trunk'|'floating ip'|'volume'|'volume snapshot')
+	'network trunk'|'floating ip'|'volume'|'volume snapshot')
 		list_generic "$resource_type" ;;
+	'router')
+		list_router;;
 	'network')
 		list_network;;
 	'subnet')
