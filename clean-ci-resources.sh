@@ -130,6 +130,13 @@ for resource in 'loadbalancer' 'server' 'router' 'subnet' 'network' 'volume snap
 		CLEANUP_FAILURES=$((CLEANUP_FAILURES + 1))
 	fi
 done
+
+# Remove expired application credentials
+openstack application credential list --format json \
+	| jq '.[] | select(."Expires At" != null and (."Expires At"[0:19] + "Z" | fromdateiso8601 < now))' \
+	| jq -r '.ID' \
+	| xargs --verbose --no-run-if-empty openstack application credential delete
+
 set -e
 if [ $CLEANUP_FAILURES != 0 ]; then
 	echo "$CLEANUP_FAILURES failure(s) was/were found during cleanup, check the logs for details"
