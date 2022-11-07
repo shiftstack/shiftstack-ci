@@ -10,12 +10,14 @@ PERIODICS_DIR="${2}/ci-operator/config/shiftstack/shiftstack-ci"
 
 OLD_VERSION="4.$(( ${NEW_VERSION#4.} - 1 ))"
 OLD_OLD_VERSION="4.$(( ${OLD_VERSION#4.} - 1 ))"
+OUT_OF_SUPPORT_VERSION="4.$(( ${OLD_VERSION#4.} - 5 ))"
 
-OLD_PERIODIC="${PERIODICS_DIR}/shiftstack-shiftstack-ci-main__periodic-${OLD_VERSION}.yaml" 
-NEW_PERIODIC="${PERIODICS_DIR}/shiftstack-shiftstack-ci-main__periodic-${NEW_VERSION}.yaml" 
+OLD_PERIODIC="${PERIODICS_DIR}/shiftstack-shiftstack-ci-main__periodic-${OLD_VERSION}.yaml"
+NEW_PERIODIC="${PERIODICS_DIR}/shiftstack-shiftstack-ci-main__periodic-${NEW_VERSION}.yaml"
+OUT_OF_SUPPORT_PERIODIC="${PERIODICS_DIR}/shiftstack-shiftstack-ci-main__periodic-${OUT_OF_SUPPORT_VERSION}.yaml"
 
-OLD_UPGRADE_PERIODIC="${PERIODICS_DIR}/shiftstack-shiftstack-ci-main__periodic-${OLD_VERSION}-upgrade-from-stable-${OLD_OLD_VERSION}.yaml" 
-NEW_UPGRADE_PERIODIC="${PERIODICS_DIR}/shiftstack-shiftstack-ci-main__periodic-${NEW_VERSION}-upgrade-from-stable-${OLD_VERSION}.yaml" 
+OLD_UPGRADE_PERIODIC="${PERIODICS_DIR}/shiftstack-shiftstack-ci-main__periodic-${OLD_VERSION}-upgrade-from-stable-${OLD_OLD_VERSION}.yaml"
+NEW_UPGRADE_PERIODIC="${PERIODICS_DIR}/shiftstack-shiftstack-ci-main__periodic-${NEW_VERSION}-upgrade-from-stable-${OLD_VERSION}.yaml"
 
 # Copy-paste "simple install" periodics
 # shellcheck disable=SC2016 # Shellcheck appears confused by the proliferation of quotes
@@ -65,8 +67,19 @@ yq --yaml-output --in-place '.
 	| ( .releases[][] | select(.stream == "ci") | .stream ) |= "nightly"
 
 	# Set a conveniently long interval to all tests in the old periodics
-	| .tests[].interval |= "72h"
+	| del(.tests[].interval)
+	| del(.tests[].cron)
+	| .tests[].minimum_interval |= "72h"
 
 	' "$OLD_PERIODIC"
+
+# Set maximum interval for branch that fell off support
+yq --yaml-output --in-place '.
+	# Set a conveniently long interval to all tests in the old periodics
+	| del(.tests[].interval)
+	| del(.tests[].cron)
+	| .tests[].minimum_interval |= "8766h"
+
+	' "$OUT_OF_SUPPORT_PERIODIC"
 
 echo "Done. Now go to '${2}' and run a good 'make update' before pushing the patch."
