@@ -65,7 +65,7 @@ yq --yaml-output --in-place '.
 	| ( .releases[][] | select(.stream == "ci") | .stream ) |= "nightly"
 
 	# Set a conveniently long interval to all tests in the old periodics
-	| .tests[].interval |= "72h"
+	| .tests[].minimum_interval |= "72h"
 
 	' "$OLD_PERIODIC"
 
