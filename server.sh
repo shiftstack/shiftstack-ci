@@ -215,34 +215,38 @@ server_id="$(echo $server_id | tr -d '\r')"
 >&2 echo "Created server ${server_id}"
 server_ip="$(openstack server show "$server_id" -c addresses -f json | grep -Pom 1 '[0-9.]{7,15}')"
 
-lb_id="$(openstack loadbalancer create --wait --name "$name" --provider ovn -f value -c id --vip-subnet-id "$subnet_id")"
->&2 echo "Created loadbalancer ${lb_id}"
+declare -A drivers=( ["ovn"]="SOURCE_IP_PORT" ["amphora"]="ROUND_ROBIN")
 
-lb_listener_id="$(openstack loadbalancer listener create --wait --name "$name" -f value -c id --protocol TCP --protocol-port 22 "$lb_id")"
->&2 echo "Created loadbalancer listener ${lb_listener_id}"
+for driver in "${!drivers[@]}"; do
+	lb_id="$(openstack loadbalancer create --wait --name "$name" --provider "$driver" -f value -c id --vip-subnet-id "$subnet_id")"
+	>&2 echo "Created loadbalancer ${lb_id}"
 
-lb_pool_id="$(openstack loadbalancer pool create --wait --name "$name" -f value -c id --lb-algorithm SOURCE_IP_PORT --listener "$lb_listener_id" --protocol TCP)"
->&2 echo "Created loadbalancer pool ${lb_pool_id}"
+	lb_listener_id="$(openstack loadbalancer listener create --wait --name "$name" -f value -c id --protocol TCP --protocol-port 22 "$lb_id")"
+	>&2 echo "Created loadbalancer listener ${lb_listener_id}"
 
-lb_member_id="$(openstack loadbalancer member create --wait -f value -c id --subnet-id "$subnet_id" --address "$server_ip" --protocol-port 22 "$lb_pool_id")"
->&2 echo "Created loadbalancer member ${lb_member_id}"
+	lb_pool_id="$(openstack loadbalancer pool create --wait --name "$name" -f value -c id --lb-algorithm "${drivers[$driver]}" --listener "$lb_listener_id" --protocol TCP)"
+	>&2 echo "Created loadbalancer pool ${lb_pool_id}"
 
-fip_id="$(openstack floating ip create -f value -c id \
-		--description "$name" \
-		"$external_network")"
-fip_address="$(openstack floating ip show -f value -c floating_ip_address "$fip_id")"
->&2 echo "Created floating IP ${fip_id}: ${fip_address}"
-lb_vip_id="$(openstack port show -f value -c id ovn-lb-vip-"$lb_id")"
-openstack floating ip set --port "$lb_vip_id" "$fip_id"
+	lb_member_id="$(openstack loadbalancer member create --wait -f value -c id --subnet-id "$subnet_id" --address "$server_ip" --protocol-port 22 "$lb_pool_id")"
+	>&2 echo "Created loadbalancer member ${lb_member_id}"
 
-if [ "$os_user" != '' ]; then
-	echo "Testing connectivity from the instance ${name}"
-	sleep 20
-	if ! ssh -o ConnectTimeout=30 -o StrictHostKeyChecking=no "$os_user"@"$fip_address" ping -c 1 1.1.1.1; then
-		echo "Error when running a ping from the instance..."
-		exit 1
+	fip_id="$(openstack floating ip create -f value -c id \
+			--description "$name" \
+			"$external_network")"
+	fip_address="$(openstack floating ip show -f value -c floating_ip_address "$fip_id")"
+	>&2 echo "Created floating IP ${fip_id}: ${fip_address}"
+	lb_vip_id="$(openstack port show -f value -c id ovn-lb-vip-"$lb_id")"
+	openstack floating ip set --port "$lb_vip_id" "$fip_id"
+
+	if [ "$os_user" != '' ]; then
+		echo "Testing connectivity from the instance ${name}"
+		sleep 20
+		if ! ssh -o ConnectTimeout=30 -o StrictHostKeyChecking=no "$os_user"@"$fip_address" ping -c 1 1.1.1.1; then
+			echo "Error when running a ping from the instance..."
+			exit 1
+		fi
 	fi
-fi
+done
 
 if [ "$persistent" == 'yes' ]; then
 	>&2 echo "Server created."
