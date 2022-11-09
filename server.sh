@@ -92,12 +92,13 @@ cleanup() {
 	>&2 echo
 	>&2 echo 'Starting the cleanup...'
 	CLEANUP_CODE=0
-	if [ -n "$fip_id" ]; then
+
+	for fip_id in "${fips_id[@]}"; do
 		if ! openstack floating ip delete "$fip_id"; then
 			>&2 echo "Failed to delete FIP $fip_id"
 			CLEANUP_CODE=1
 		fi
-	fi
+	done
 	if [ -n "$server_id" ]; then
 		if ! openstack server delete --wait "$server_id"; then
 			>&2 echo "Failed to delete server $server_id"
@@ -132,12 +133,12 @@ cleanup() {
 			CLEANUP_CODE=1
 		fi
 	fi
-	if [ -n "$lb_id" ]; then
+	for lb_id in "${lb_ids[@]}"; do
 		if ! openstack loadbalancer delete --cascade --wait "$lb_id"; then
 			>&2 echo "Failed to delete loadbalancer $lb_id"
 			CLEANUP_CODE=1
 		fi
-	fi
+	done
 	if [ -n "$network_id" ]; then
 		if ! openstack network delete "$network_id"; then
 			>&2 echo "Failed to delete network $network_id"
@@ -216,10 +217,14 @@ server_id="$(echo $server_id | tr -d '\r')"
 server_ip="$(openstack server show "$server_id" -c addresses -f json | grep -Pom 1 '[0-9.]{7,15}')"
 
 declare -A drivers=( ["ovn"]="SOURCE_IP_PORT" ["amphora"]="ROUND_ROBIN")
+declare -A ports=( ["ovn"]="ovn-lb-vip" ["amphora"]="octavia-lb")
+declare -a fips_id
+declare -a lb_ids
 
 for driver in "${!drivers[@]}"; do
 	lb_id="$(openstack loadbalancer create --wait --name "$name" --provider "$driver" -f value -c id --vip-subnet-id "$subnet_id")"
 	>&2 echo "Created loadbalancer ${lb_id}"
+	lb_ids+=("${lb_id}")
 
 	lb_listener_id="$(openstack loadbalancer listener create --wait --name "$name" -f value -c id --protocol TCP --protocol-port 22 "$lb_id")"
 	>&2 echo "Created loadbalancer listener ${lb_listener_id}"
@@ -235,7 +240,8 @@ for driver in "${!drivers[@]}"; do
 			"$external_network")"
 	fip_address="$(openstack floating ip show -f value -c floating_ip_address "$fip_id")"
 	>&2 echo "Created floating IP ${fip_id}: ${fip_address}"
-	lb_vip_id="$(openstack port show -f value -c id ovn-lb-vip-"$lb_id")"
+	fips_id+=("${fip_id}")
+	lb_vip_id="$(openstack port show -f value -c id "${ports[$driver]}"-"$lb_id")"
 	openstack floating ip set --port "$lb_vip_id" "$fip_id"
 
 	if [ "$os_user" != '' ]; then
@@ -259,3 +265,4 @@ else
 		read pause
 	fi
 fi
+
