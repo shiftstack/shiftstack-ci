@@ -10,10 +10,12 @@ set -Eeuo pipefail
 
 os_project="$(openstack token issue -f value -c project_id)"
 
-echo "# These metrics refer to project '$os_project' in the '$OS_CLOUD' cloud."
 for service in 'compute' 'network'; do
-	openstack quota list --detail "--${service}" --project "$os_project" -f value -c 'Resource' -c 'In Use' -c 'Limit' \
-		| sed -n \
-			-e 's/^\(\w\+\)\s\([[:digit:]]\+\)\s\([[:digit:]]\+\)$/'"$service"'_\1{quota="inuse"} \2\n'"$service"'_\1{quota="limit"} \3/gp;' \
-			-e 's/^\(\w\+\)\s\([[:digit:]]\+\)\s-1$/'"$service"'_\1{quota="inuse"} \2/gp'
+	openstack quota list --detail "--${service}" --project "$os_project" -f value -c 'Resource' -c 'In Use' -c 'Limit' | while read -r resource inuse limit; do
+		metric=openstack_quota_${service}_${resource}
+		echo "# HELP ${metric} OpenStack project quota for ${service} ${resource}"
+		echo "# TYPE ${metric} gauge"
+		echo "${metric}{cloud=\"${OS_CLOUD}\",project=\"${os_project}\",type=\"inuse\"} $inuse"
+		echo "${metric}{cloud=\"${OS_CLOUD}\",project=\"${os_project}\",type=\"limit\"} $limit"
+	done
 done
