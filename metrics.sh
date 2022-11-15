@@ -25,3 +25,13 @@ for service in 'compute' 'network' 'volume'; do
 		echo "${metric}{cloud=\"${OS_CLOUD}\",project=\"${os_project}\",type=\"limit\"} $limit"
 	done
 done
+
+
+metric=openstack_server
+echo "# HELP ${metric} OpenStack servers by status"
+echo "# TYPE ${metric} gauge"
+openstack server list -f value -c Status \
+	| uniq -c \
+	| while read -r number state; do
+		echo "${metric}{cloud=\"${OS_CLOUD}\",project=\"${os_project}\",status=\"${state}\"} $number";
+	done
