@@ -10,7 +10,7 @@ set -Eeuo pipefail
 
 os_project="$(openstack token issue -f value -c project_id)"
 
-for service in 'compute' 'network' 'volume'; do
+for service in 'compute' 'network'; do
 	openstack quota list --detail "--${service}" --project "$os_project" -f value -c 'Resource' -c 'In Use' -c 'Reserved' -c 'Limit' | while read -r resource inuse reserved limit; do
 		metric=openstack_quota_${service}_${resource}
 
