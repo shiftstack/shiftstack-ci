@@ -246,7 +246,7 @@ for driver in "${!drivers[@]}"; do
 
 	if [ "$os_user" != '' ]; then
 		echo "Testing connectivity from the instance ${name}"
-		sleep 20
+		sleep 60
 		if ! ssh -o ConnectTimeout=30 -o StrictHostKeyChecking=no "$os_user"@"$fip_address" ping -c 1 1.1.1.1; then
 			echo "Error when running a ping from the instance. Dumping instance console..."
 			openstack console log show "$name" || true
