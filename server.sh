@@ -23,16 +23,16 @@ print_help() {
 	echo -e 'Spin a server on OpenStack'
 	echo
 	echo -e 'Usage:'
-	echo -e "\t${0} [-p] -f <flavor> -i <image> -e <external network> -k <key> NAME"
+	echo -e "\t${0} [-p] [-k <key>] -f <flavor> -i <image> -e <external network> NAME"
 	echo
 	echo -e 'Required parameters:'
 	echo -e '\t-f\tFlavor of the Compute instance.'
 	echo -e '\t-i\tImage of the Compute instance.'
 	echo -e '\t-e\tName or ID of the public network where to create the floating IP.'
-	echo -e '\t-k\tName or ID of the SSH public key to add to the server.'
 	echo -e '\tNAME: name to give to the OpenStack resources.'
 	echo
 	echo -e 'Optional parameters:'
+	echo -e '\t-k\tName or ID of the SSH public key to add to the server.'
 	echo -e '\t-d\tRun the script in debug mode'
 	echo -e '\t-p\tDo not clean up the server after creation'
 	echo -e '\t\t(will print a cleanup script instead of executing it).'
@@ -215,8 +215,10 @@ server_create_args=(
     --flavor "$server_flavor"
     --nic "port-id=$port_id"
     --security-group "$sg_id"
-    --key-name "$key_name"
 )
+if [ -n "$key_name" ]; then
+    server_create_args+=(--key-name "$key_name")
+fi
 if [ "$liveness" == 'yes' ]; then
     server_create_args+=(--user-data "${script_dir}/connectivity-test-cloud-init.yaml")
 fi
@@ -263,7 +265,7 @@ for driver in "${!drivers[@]}"; do
 		# propagated to the network hardware yet, which curl cannot.
 		start=$(date +%s)
 		backoff=1
-		while ! curl --fail-with-body http://"$fip_address"/; do
+		while ! curl --fail-with-body --no-progress-meter http://"$fip_address"/; do
                     # This normally succeeds immediately, but we allow it up to
                     # 300 seconds.
 		    if [ $(( $(date +%s)-start )) -gt 300 ]; then
