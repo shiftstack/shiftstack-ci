@@ -265,7 +265,7 @@ for driver in "${!drivers[@]}"; do
 		# propagated to the network hardware yet, which curl cannot.
 		start=$(date +%s)
 		backoff=1
-		while ! curl --fail-with-body http://"$fip_address"/; do
+		while ! curl --fail-with-body --no-progress-meter http://"$fip_address"/; do
                     # This normally succeeds immediately, but we allow it up to
                     # 300 seconds.
 		    if [ $(( $(date +%s)-start )) -gt 300 ]; then
