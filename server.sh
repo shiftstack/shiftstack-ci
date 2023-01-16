@@ -16,6 +16,8 @@
 
 set -Eeuo pipefail
 
+script_dir=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
+
 print_help() {
 	echo -e 'github.com/shiftstack/shiftstack-ci'
 	echo -e 'Spin a server on OpenStack'
@@ -34,7 +36,8 @@ print_help() {
 	echo -e '\t-d\tRun the script in debug mode'
 	echo -e '\t-p\tDo not clean up the server after creation'
 	echo -e '\t\t(will print a cleanup script instead of executing it).'
-	echo -e '\t-u\tTest connectivity from the instance by setting the cloud user from the image (e.g. centos)'
+	echo -e '\t-u\tName of the cloud user from the image (e.g. centos) [not used, except to imply -l]'
+	echo -e '\t-l\tInstall and run a connectivity test application'
 	echo -e '\t-t\tRun the script without pause (create/cleanup)'
 }
 
@@ -42,17 +45,19 @@ declare \
 	debug=''         \
 	persistent=''    \
 	interactive=''   \
-	os_user=''       \
+	liveness=''      \
 	server_flavor='' \
 	server_image=''  \
 	key_name=''      \
 	external_network='external'
-while getopts dtpf:u:i:e:k:h opt; do
+# Note that the $OPTARG to -u is ignored because it is deprecated
+while getopts dtplf:u:i:e:k:h opt; do
 	case "$opt" in
 		d) debug='yes'                ;;
 		p) persistent='yes'           ;;
 		t) interactive='no'           ;;
-		u) os_user="$OPTARG"          ;;
+		u) liveness='yes'             ;;
+		l) liveness='yes'             ;;
 		f) server_flavor="$OPTARG"    ;;
 		i) server_image="$OPTARG"     ;;
 		e) external_network="$OPTARG" ;;
@@ -203,14 +208,19 @@ port_id="$(openstack port create -f value -c id \
 		"$name")"
 >&2 echo "Created port ${port_id}"
 
-server_id="$(openstack server create --wait -f value -c id \
-		--block-device uuid="$vol_id" \
-		--image "$server_image" \
-		--flavor "$server_flavor" \
-		--nic "port-id=$port_id" \
-		--security-group "$sg_id" \
-		--key-name "$key_name" \
-		"$name")"
+declare -a server_create_args
+server_create_args=(
+    --block-device uuid="$vol_id"
+    --image "$server_image"
+    --flavor "$server_flavor"
+    --nic "port-id=$port_id"
+    --security-group "$sg_id"
+    --key-name "$key_name"
+)
+if [ "$liveness" == 'yes' ]; then
+    server_create_args+=(--user-data "${script_dir}/connectivity-test-cloud-init.yaml")
+fi
+server_id=$(openstack server create --wait -f value -c id "${server_create_args[@]}" "$name")
 # shellcheck disable=SC2086
 server_id="$(echo $server_id | tr -d '\r')"
 >&2 echo "Created server ${server_id}"
@@ -226,13 +236,13 @@ for driver in "${!drivers[@]}"; do
 	>&2 echo "Created loadbalancer ${lb_id}"
 	lb_ids+=("${lb_id}")
 
-	lb_listener_id="$(openstack loadbalancer listener create --wait --name "$name" -f value -c id --protocol TCP --protocol-port 22 "$lb_id")"
+	lb_listener_id="$(openstack loadbalancer listener create --wait --name "$name" -f value -c id --protocol TCP --protocol-port 80 "$lb_id")"
 	>&2 echo "Created loadbalancer listener ${lb_listener_id}"
 
 	lb_pool_id="$(openstack loadbalancer pool create --wait --name "$name" -f value -c id --lb-algorithm "${drivers[$driver]}" --listener "$lb_listener_id" --protocol TCP)"
 	>&2 echo "Created loadbalancer pool ${lb_pool_id}"
 
-	lb_member_id="$(openstack loadbalancer member create --wait -f value -c id --subnet-id "$subnet_id" --address "$server_ip" --protocol-port 22 "$lb_pool_id")"
+	lb_member_id="$(openstack loadbalancer member create --wait -f value -c id --subnet-id "$subnet_id" --address "$server_ip" --protocol-port 80 "$lb_pool_id")"
 	>&2 echo "Created loadbalancer member ${lb_member_id}"
 
 	fip_id="$(openstack floating ip create -f value -c id \
@@ -244,17 +254,29 @@ for driver in "${!drivers[@]}"; do
 	lb_vip_id="$(openstack port show -f value -c id "${ports[$driver]}"-"$lb_id")"
 	openstack floating ip set --port "$lb_vip_id" "$fip_id"
 
-	if [ "$os_user" != '' ]; then
-		echo "Testing connectivity from the instance ${name}"
-		sleep 60
-		if ! ssh -o ConnectTimeout=30 -o StrictHostKeyChecking=no "$os_user"@"$fip_address" ping -c 1 1.1.1.1; then
-			echo "Error when running a ping from the instance. Dumping load balancer status..."
+	if [ "$liveness" == 'yes' ]; then
+		echo "Testing connectivity to and from the instance ${name}"
+
+		# N.B. We use a retry loop here rather than curl's retry
+		# options here because it can catch more types of failure. e.g.
+		# it can retry on 'No route to host' if the FIP hasn't
+		# propagated to the network hardware yet, which curl cannot.
+		start=$(date +%s)
+		backoff=1
+		while ! curl --fail-with-body http://"$fip_address"/; do
+                    # This normally succeeds immediately, but we allow it up to
+                    # 300 seconds.
+		    if [ $(( $(date +%s)-start )) -gt 300 ]; then
+			echo "Error checking instance connectivity. Dumping load balancer status and console log."
 			openstack loadbalancer status show "$lb_id"
-			echo "Error when running a ping from the instance. Dumping instance console..."
 			openstack console log show "$name" || true
 			echo "Done"
 			exit 1
-		fi
+		    fi
+		    echo "Backing off for ${backoff} seconds"
+		    sleep ${backoff}
+		    backoff=$(( backoff * 2 ))
+		done
 	fi
 done
 

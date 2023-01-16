@@ -1,0 +1,29 @@
+#cloud-config
+
+# Run a trivial http server which returns OK if it is able to connect to an
+# external web server.
+# N.B. This blocks, which means cloud-init will never complete. This is fine
+#      for this CI test.
+runcmd:
+- - /usr/bin/python
+  - -c
+  - |
+    from http.server import BaseHTTPRequestHandler
+    from http.server import HTTPServer
+    from urllib.request import urlopen
+
+    TEST_URL='https://www.google.com/'
+
+    class ConnectivityTest(BaseHTTPRequestHandler):
+        def do_GET(self):
+            try:
+                urlopen(TEST_URL, timeout=5)
+                self.send_response(200)
+                self.end_headers()
+                self.wfile.write('OK'.encode())
+            except Exception as ex:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(f'Unable to connect to {TEST_URL}: {ex}'.encode())
+
+    HTTPServer(('0.0.0.0', 80), ConnectivityTest).serve_forever()
