@@ -120,6 +120,17 @@ for resource in 'loadbalancer' 'server' 'router' 'subnet' 'network' 'volume snap
 			echo "$r" | report $resource | xargs --verbose openstack $resource delete
 			done
 			;;
+		subnet)
+		  for r in $(./stale.sh -q "$resource"); do
+			network=$(openstack subnet show "$r" -c network_id -f value)
+			ports=$(openstack port list --network "$network" -f value -c id)
+			for port in $ports; do
+			  echo "$port" | report port | xargs --verbose openstack port delete
+			done
+			# shellcheck disable=SC2086
+			echo "$r" | report $resource | xargs --verbose openstack $resource delete
+			done
+			;;
 		*)
 			# shellcheck disable=SC2086
 			./stale.sh -q $resource | report $resource | xargs --verbose --no-run-if-empty openstack $resource delete
