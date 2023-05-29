@@ -82,6 +82,11 @@ for resource in 'loadbalancer' 'server' 'router' 'subnet' 'network' 'volume snap
 		volume)
 			for r in $(./stale.sh -q "$resource"); do
 				status=$(openstack "${resource}" show -c status -f value "${r}")
+				attach_status=$(openstack "${resource}" show -c attachments -f value "${r}")
+				if [ "$attach_status" != "[]" ]; then
+					echo "${resource} ${r} is attached to a server, will try to detach it"
+					openstack "${resource}" set --detached "$r" || >&2 echo "Failed to detach ${resource} ${r}, ${r} will probably fail to be removed..."
+				fi
 				case "$status" in
 					# For Cinder volumes, deletable states are documented here:
 					# https://docs.openstack.org/api-ref/block-storage/v3/index.html?expanded=delete-a-volume-detail#delete-a-volume
