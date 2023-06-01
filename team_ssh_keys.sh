@@ -26,5 +26,5 @@ MEMBERS=$(yq --arg team_name "$TEAM_NAME" -r '.aliases[$team_name] | join(" ")' 
 
 for member in $MEMBERS; do
     key=$(curl -s "https://github.com/$member.keys")
-    echo "$key $member"
+    printf '# %s\n%s\n\n' "$member" "$key"
 done
