@@ -61,7 +61,7 @@ fi
 declare -r resource_type="$*"
 
 declare valid_limit
-valid_limit="$(date --date='-5 hours' +%s)"
+valid_limit="$(date --date='-7 hours' +%s)"
 readonly valid_limit
 
 list_server() {

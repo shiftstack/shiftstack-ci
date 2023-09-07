@@ -34,7 +34,7 @@ print_cluster_id() {
 	esac
 }
 
-VALID_LIMIT="$(date --date='-5 hours' +%s)"
+VALID_LIMIT="$(date --date='-7 hours' +%s)"
 readonly VALID_LIMIT
 
 declare filter=''
