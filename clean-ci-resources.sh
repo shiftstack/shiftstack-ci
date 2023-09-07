@@ -9,7 +9,7 @@ fi
 for arg in "$@"; do
   shift
   case "$arg" in
-    "--delete-everything-older-than-5-hours") set -- "$@" "-f" ;;
+    "--no-dry-run") set -- "$@" "-f" ;;
     *) set -- "$@" "$arg"
   esac
 done
@@ -27,7 +27,7 @@ while getopts :o:f opt; do
 done
 
 if [ $DELETE != 1 ]; then
-	echo "Refusing to run unless passing the --delete-everything-older-than-5-hours option"
+	echo "Refusing to run unless passing the --no-dry-run option"
 	exit 5
 fi
 
