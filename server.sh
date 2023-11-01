@@ -35,6 +35,7 @@ print_help() {
 	echo -e '\t-k\tName or ID of the SSH public key to add to the server.'
 	echo -e '\t-d\tRun the script in debug mode'
 	echo -e '\t-p\tDo not clean up the server after creation'
+	echo -e '\t-z\tAvailability zone where to create the server and volume'
 	echo -e '\t\t(will print a cleanup script instead of executing it).'
 	echo -e '\t-u\tName of the cloud user from the image (e.g. centos) [not used, except to imply -l]'
 	echo -e '\t-l\tInstall and run a connectivity test application'
@@ -49,21 +50,23 @@ declare \
 	server_flavor='' \
 	server_image=''  \
 	key_name=''      \
+	availability_zone='' \
 	external_network='external'
 # Note that the $OPTARG to -u is ignored because it is deprecated
-while getopts dtplf:u:i:e:k:h opt; do
+while getopts dtplf:u:i:e:k:z:h opt; do
 	case "$opt" in
-		d) debug='yes'                ;;
-		p) persistent='yes'           ;;
-		t) interactive='no'           ;;
-		u) liveness='yes'             ;;
-		l) liveness='yes'             ;;
-		f) server_flavor="$OPTARG"    ;;
-		i) server_image="$OPTARG"     ;;
-		e) external_network="$OPTARG" ;;
-		k) key_name="$OPTARG"         ;;
-		h) print_help; exit 0         ;;
-		*) exit 1                     ;;
+		d) debug='yes'                 ;;
+		p) persistent='yes'            ;;
+		t) interactive='no'            ;;
+		u) liveness='yes'              ;;
+		l) liveness='yes'              ;;
+		f) server_flavor="$OPTARG"     ;;
+		i) server_image="$OPTARG"      ;;
+		e) external_network="$OPTARG"  ;;
+		k) key_name="$OPTARG"          ;;
+		z) availability_zone="$OPTARG" ;;
+		h) print_help; exit 0          ;;
+		*) exit 1                      ;;
 	esac
 done
 
@@ -74,9 +77,10 @@ fi
 shift "$((OPTIND-1))"
 declare -r name="${1:?This script requires one positional argument: the resource name}"
 readonly \
-	server_flavor \
-	server_image  \
-	key_name      \
+	server_flavor     \
+	server_image      \
+	key_name          \
+	availability_zone \
 	external_network
 
 declare \
@@ -176,7 +180,13 @@ EOF
 
 }
 
-vol_id="$(openstack volume create --size 10 -f value -c id "$name")"
+volume_create_args=(
+	--size 10
+)
+if [ -n "$availability_zone" ]; then
+	volume_create_args+=(--availability-zone "$availability_zone")
+fi
+vol_id="$(openstack volume create -f value -c id "${volume_create_args[@]}" "$name")"
 >&2 echo "Created volume ${vol_id}"
 
 sg_id="$(openstack security group create -f value -c id "$name")"
@@ -218,6 +228,9 @@ server_create_args=(
 )
 if [ -n "$key_name" ]; then
     server_create_args+=(--key-name "$key_name")
+fi
+if [ -n "$availability_zone" ]; then
+    server_create_args+=(--availability-zone "$availability_zone")
 fi
 if [ "$liveness" == 'yes' ]; then
     server_create_args+=(--user-data "${script_dir}/connectivity-test-cloud-init.yaml")
