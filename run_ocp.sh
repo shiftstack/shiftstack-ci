@@ -92,6 +92,7 @@ controlPlane:
     openstack:
       type: ${OPENSTACK_FLAVOR}
       ${MASTER_ROOT_VOLUME}
+      additionalSecurityGroupIDs: [${OPENSTACK_MASTER_ADDITIONAL_SECURITY_GROUP_ID}]
   replicas: ${MASTER_COUNT}
 metadata:
   name: ${CLUSTER_NAME}
@@ -101,7 +102,6 @@ networking:
     hostPrefix: 23
   machineNetwork:
   - cidr: 10.0.128.0/17
-  networkType: OpenShiftSDN
   serviceNetwork:
   - 172.30.0.0/16
 platform:

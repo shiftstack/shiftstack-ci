@@ -30,6 +30,12 @@ export WORKER_COUNT=3
 
 # export OPENSTACK_EXTERNAL_NETWORK=external
 
+# The installer adds additional security groups to the master and bootstrap instances for particular access permissions. 
+# For example,  if you deploy the installer externally, you can add a security group 
+# that provides SSH access to the floating IP network from your local network, 
+# essential to reach the bootstrap instance for debugging purposes.
+# export OPENSTACK_MASTER_ADDITIONAL_SECURITY_GROUP_ID =""
+
 # The installer automatically uploads the RHCOS image to glance.
 # While this allows to ensure the right image is used, this also means you'll
 # need to transfer 2GB both ways when deploying a cluster which may not be the

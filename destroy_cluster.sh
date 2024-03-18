@@ -35,7 +35,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-declare -r installer="${OPENSHIFT_INSTALLER:-openshift-install}"
+declare -r installer="${OPENSHIFT_INSTALLER:-$GOPATH/src/github.com/openshift/installer/bin/openshift-install}"
 
 # Remove entries from /etc/hosts and ssh config
 if sudo -l sed /etc/hosts &>/dev/null; then
