@@ -10,6 +10,11 @@ export SSH_PUB_KEY="`cat $HOME/.ssh/id_rsa.pub`"
 export MASTER_COUNT=3
 export WORKER_COUNT=3
 
+# Select the CNI plugin to use in your OCP deployment
+# From OCP 4.15 <, use OpenShiftSDN
+# From OCP 4.15 >=, use KubernetesOVN
+export OPENSHIFT_NETWORKTYPE="OpenShiftSDN"
+
 ##############################################
 # The following settings are platform specific
 ##############################################
