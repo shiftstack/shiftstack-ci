@@ -48,7 +48,7 @@ Lastly, you need some binaries to work with OpenShift and OpenStack. This is
 easy, just run:
 
 ```bash
-sudo dnf install jq python2-openstackclient origin-clients
+sudo dnf install jq python-openstackclient
 ```
 
 ## Cluster Configuration
@@ -69,7 +69,7 @@ CLUSTER_NAME       What your ocp cluster will be nicknamed. This naming scheme i
 ```
 
 Finally you need to obtain a pull secret from [here](https://cloud.redhat.com/openshift/install/osp/installer-provisioned),
-and replace `PULL_SECRET` vaiable with the new value. If you don't do this
+and replace `PULL_SECRET` variable with the new value. If you don't do this
 you can still install the cluster, but you won't be able to create new
 applications in OpenShift because you won't have access to private images.
 
