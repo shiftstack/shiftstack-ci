@@ -3,6 +3,17 @@
 set -eu
 set -o pipefail
 
+function show_usage() {
+    echo "Refresh RHCOS image on cloud"
+    echo ""
+    echo "  $0 [-h] [-b <BRANCH>]"
+    echo ""
+    echo "Options:"
+    echo "  -b <BRANCH> The branch name. Example: 4.18"
+    echo "  -h          Show this help text."
+    exit 0
+}
+
 if [ -z "$OS_CLOUD" ]; then
     echo 'Set your OS_CLOUD environment variable'
     exit 1
@@ -10,7 +21,7 @@ fi
 
 BRANCH="4.2"
 
-opts=$(getopt -n "$0"  -o "b:" --long 'branch:'  -- "$@")
+opts=$(getopt -n "$0" -o "b:h" --long 'branch:,help' -- "$@")
 
 eval set "--$opts"
 
@@ -19,11 +30,13 @@ mkdir -p "$CACHE_DIR"
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
+        -h|--help)
+            show_usage
+            ;;
         -b|--branch)
             BRANCH=$2
             shift 2
             ;;
-
         *)
             break
             ;;
