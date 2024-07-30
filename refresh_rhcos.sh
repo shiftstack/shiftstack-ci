@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 set -eu
 set -o pipefail
 
@@ -53,8 +54,6 @@ else
     IMAGE_VERSION="$(jq --raw-output '.architectures.x86_64.artifacts.openstack.release' "$RHCOS_VERSIONS_FILE")"
 fi
 
-
-
 current_image_version="$(mktemp)"
 openstack image show -c properties -f json "$IMAGE_NAME" > "$current_image_version" || true
 
@@ -66,17 +65,17 @@ fi
 LOCAL_IMAGE_FILE="${CACHE_DIR}/$(echo -n "${IMAGE_URL}?sha256=${IMAGE_SHA}" | md5sum | cut -d ' ' -f1)"
 
 if [ -f "$LOCAL_IMAGE_FILE" ]; then
-	echo "Found cached image $LOCAL_IMAGE_FILE"
+    echo "Found cached image $LOCAL_IMAGE_FILE"
 else
-	echo "Downloading RHCOS image from:"
-	echo "$IMAGE_URL"
+    echo "Downloading RHCOS image from:"
+    echo "$IMAGE_URL"
 
-	if [[ "$IMAGE_URL" == *.gz ]]; then
-	    curl --insecure --compressed -L -o "${LOCAL_IMAGE_FILE}.gz" "$IMAGE_URL"
-	    gunzip -f "${LOCAL_IMAGE_FILE}.gz"
-	else
-	    curl --insecure --compressed -L -o "$LOCAL_IMAGE_FILE" "$IMAGE_URL"
-	fi
+    if [[ "$IMAGE_URL" == *.gz ]]; then
+        curl --insecure --compressed -L -o "${LOCAL_IMAGE_FILE}.gz" "$IMAGE_URL"
+        gunzip -f "${LOCAL_IMAGE_FILE}.gz"
+    else
+        curl --insecure --compressed -L -o "$LOCAL_IMAGE_FILE" "$IMAGE_URL"
+    fi
 fi
 
 echo "Verifying image..."
