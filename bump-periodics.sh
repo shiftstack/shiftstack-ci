@@ -40,3 +40,4 @@ sed -i "s/stream: nightly/stream: ci/" "${NEW_UPGRADE_PERIODIC}"
 sed -i "s/stream: ci/stream: nightly/" "${OLD_UPGRADE_PERIODIC}"
 
 echo "Done. Now go to '${2}' and run a good 'make update' before pushing the patch."
+echo "Do not forget to manually add slack notification to the job definition."
