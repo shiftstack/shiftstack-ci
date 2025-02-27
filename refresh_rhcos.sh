@@ -14,11 +14,6 @@ function show_usage() {
     exit 0
 }
 
-if [ -z "$OS_CLOUD" ]; then
-    echo 'Set your OS_CLOUD environment variable'
-    exit 1
-fi
-
 BRANCH="4.2"
 
 opts=$(getopt -n "$0" -o "b:h" --long 'branch:,help' -- "$@")
@@ -42,6 +37,11 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+if [ -z "$OS_CLOUD" ]; then
+    echo 'Set your OS_CLOUD environment variable'
+    exit 1
+fi
 
 if [ "$BRANCH" == "4.2" ]; then
     REAL_BRANCH_NAME="release-$BRANCH"
