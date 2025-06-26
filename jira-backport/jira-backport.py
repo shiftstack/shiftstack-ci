@@ -1,3 +1,10 @@
+# /// script
+# dependencies = [
+#   "jira",
+#   "PyGithub",
+# ]
+# ///
+
 from jira import JIRA
 from github import Github
 from github import Auth
