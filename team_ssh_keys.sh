@@ -22,7 +22,7 @@ if [ -z "$OWNER_ALIASES" ]; then
 fi
 
 # shellcheck disable=SC2016
-MEMBERS=$(yq --arg team_name "$TEAM_NAME" -r '.aliases[$team_name] | join(" ")' <<< "$OWNER_ALIASES")
+MEMBERS=$(yq -r '.aliases[env(TEAM_NAME)] | join(" ")' <<< "$OWNER_ALIASES")
 
 for member in $MEMBERS; do
     key=$(curl -s "https://github.com/$member.keys")
