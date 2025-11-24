@@ -110,12 +110,12 @@ if [ ! -f "$OC_REGISTRY_AUTH_FILE" ]; then
 fi
 
 echo "Directly push the release images to the local registry:"
-oc adm -a "${OC_REGISTRY_AUTH_FILE}" release mirror --insecure=${INSECURE} \
+oc adm -a "${OC_REGISTRY_AUTH_FILE}" release mirror --insecure="${INSECURE}" \
      --from="${PRODUCT_REPO}"/"${RELEASE_NAME}":"${TAG}" \
      --to="${LOCAL_REGISTRY}" \
      --to-release-image="${LOCAL_REGISTRY}":"${TAG}"
 
 echo "Create the installation program that is based on the content:"
 echo "that we mirrored, extract it and pin it to the release"
-oc adm -a "${OC_REGISTRY_AUTH_FILE}" release extract --insecure=${INSECURE} --command=openshift-install "${LOCAL_REGISTRY}:${TAG}"
+oc adm -a "${OC_REGISTRY_AUTH_FILE}" release extract --insecure="${INSECURE}" --command=openshift-install "${LOCAL_REGISTRY}:${TAG}"
 echo "You now have ./openshift-install ready to be used."
