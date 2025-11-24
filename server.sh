@@ -220,7 +220,7 @@ port_id="$(openstack port create -f value -c id \
 
 declare -a server_create_args
 server_create_args=(
-    --block-device uuid="$vol_id"
+    --block-device "uuid=$vol_id,source_type=volume"
     --image "$server_image"
     --flavor "$server_flavor"
     --nic "port-id=$port_id"
