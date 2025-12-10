@@ -88,3 +88,14 @@ forwards, however, we will be looking to move away from building the cluster
 this way, and towards using the [CI
 operator](https://github.com/openshift/ci-operator/) as our primary means of
 testing.
+
+## Auditing CI Jobs Configuration
+
+Audits CI configuration files to find OpenStack e2e test jobs and reports
+their run_if_changed and skip_if_only_changed settings.
+
+Usage: python hack/openstack-job-audit.py <project_path> [output_file]
+  project_path: Path to the local copy of the release repo
+  output_file: Output file path (default: ./openstack-ci-report.yaml)
+
+Example: ./openstack-job-audit.py /path/to/openshift/release ./report.yaml
