@@ -1,4 +1,4 @@
-FROM registry.fedoraproject.org/fedora:34
+FROM registry.fedoraproject.org/fedora:43
 
 RUN ./hack/dnf_safe update -y \
 	&& ./hack/dnf_safe install -y \
