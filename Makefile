@@ -1,4 +1,3 @@
-
 KEY_NAME ?= $(shell whoami)
 
 shiftstack-bot: shiftstack-bot-clean-ci-resources shiftstack-bot-cireport
@@ -21,5 +20,4 @@ server:
 
 shellcheck:
 	find . -type f -name "*.sh" | xargs --verbose --no-run-if-empty shellcheck
-
 .PHONY: shellcheck
