@@ -102,11 +102,19 @@ new_image_id="$(openstack image create "${IMAGE_NAME}-new" --container-format ba
 
 echo "Replace old '$IMAGE_NAME' image with new one on '${OS_CLOUD}'"
 
-# Always only keep one backup of rhcos image
-openstack image delete "${IMAGE_NAME}-old" || true
+# Always only keep one backup of rhcos image (delete by ID to handle duplicates)
+for id in $(openstack image list --name "${IMAGE_NAME}-old" -f value -c ID 2>/dev/null); do
+    openstack image delete "$id" 2>/dev/null || true
+done
 
-# Then swap the images
-openstack image set --name "${IMAGE_NAME}-old" "$IMAGE_NAME" || true
+# Resolve current image by name to ID before renaming, so we don't
+# accidentally rename a different image uploaded by a concurrent job.
+current_id="$(openstack image list --name "$IMAGE_NAME" -f value -c ID 2>/dev/null | head -1)"
+
+# Then swap the images (by ID, not name)
+if [[ -n "$current_id" ]]; then
+    openstack image set --name "${IMAGE_NAME}-old" "$current_id" || true
+fi
 openstack image set --name "$IMAGE_NAME" "$new_image_id"
 
 echo Done
