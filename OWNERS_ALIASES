@@ -2,14 +2,24 @@
 
 aliases:
   openstack-approvers:
-    - eurijon
+    - chenwng
+    - danchild
+    - dlaw4608
+    - eshulman2
     - gryf
     - imatza-rh
     - mandre
     - stephenfin
+    - tusharjadhav3302
+    - winiciusallan
   openstack-reviewers:
-    - eurijon
+    - chenwng
+    - danchild
+    - dlaw4608
+    - eshulman2
     - gryf
     - imatza-rh
     - mandre
     - stephenfin
+    - tusharjadhav3302
+    - winiciusallan
