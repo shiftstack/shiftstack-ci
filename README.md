@@ -99,3 +99,23 @@ Usage: python hack/openstack-job-audit.py <project_path> [output_file]
   output_file: Output file path (default: ./openstack-ci-report.yaml)
 
 Example: ./openstack-job-audit.py /path/to/openshift/release ./report.yaml
+
+## OpenStack CI Analysis (Claude Code Skill)
+
+A comprehensive CI analysis toolkit is available as a Claude Code skill at
+`.claude/skills/openstack-ci-analysis/`. This skill analyzes OpenStack CI job
+health, pass rates, coverage gaps, and failure categories.
+
+**Features:**
+- Extract job inventory from CI configuration files
+- Fetch runtime metrics from Sippy API
+- Compare OpenStack pass rates against AWS, GCP, Azure, vSphere
+- Categorize failures by root cause (infrastructure, flaky, product bug)
+- Identify coverage gaps and trigger optimization opportunities
+
+**Usage with Claude Code:**
+
+The skill is automatically available when using Claude Code in this repository.
+Ask Claude to analyze CI jobs, generate health reports, or investigate failures.
+
+Requires Python 3.6+ and PyYAML (`pip install pyyaml`).
