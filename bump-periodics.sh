@@ -3,13 +3,30 @@
 set -Eeuo pipefail
 
 # Usage:
-# "$0" 4.12 ~/code/src/github.com/openshift/release
+# "$0" 5.0 ~/code/src/github.com/openshift/release
+#
+# When bumping across a major version boundary (e.g. 4.x -> 5.0), update
+# LAST_MINOR below with the last minor release of the previous major.
 
 NEW_VERSION="$1"
 PERIODICS_DIR="${2}/ci-operator/config/shiftstack/ci"
 
-OLD_VERSION="4.$(( ${NEW_VERSION#4.} - 1 ))"
-OLD_OLD_VERSION="4.$(( ${OLD_VERSION#4.} - 1 ))"
+# Last minor version of each major (for major-version boundary bumps)
+declare -A LAST_MINOR=( [4]=22 )
+
+prev_version() {
+    local major minor prev_major
+    IFS='.' read -r major minor <<< "$1"
+    if (( minor > 0 )); then
+        echo "${major}.$(( minor - 1 ))"
+    else
+        prev_major=$(( major - 1 ))
+        echo "${prev_major}.${LAST_MINOR[${prev_major}]}"
+    fi
+}
+
+OLD_VERSION="$(prev_version "${NEW_VERSION}")"
+OLD_OLD_VERSION="$(prev_version "${OLD_VERSION}")"
 
 OLD_PERIODIC="${PERIODICS_DIR}/shiftstack-ci-release-${OLD_VERSION}.yaml"
 NEW_PERIODIC="${PERIODICS_DIR}/shiftstack-ci-release-${NEW_VERSION}.yaml"
